@@ -12,6 +12,7 @@ export function handlePortfolioRegistered(event: PortfolioRegisteredEvent): void
   let portfolioId = event.params.portfolio.toHex()
   let portfolio = new Portfolio(portfolioId)
   portfolio.user = owner.id
+  portfolio.factory = event.params.factory
   portfolio.createdAt = event.block.timestamp
   portfolio.currentLoanAmount = BigInt.fromI32(0)
   portfolio.totalBorrowed = BigInt.fromI32(0)

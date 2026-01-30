@@ -1,6 +1,7 @@
 type Portfolio @entity {
   id: ID! # portfolio address
   user: Account!
+  factory: Bytes!
   createdAt: BigInt!
   currentLoanAmount: BigInt! @default(value: "0")
   totalBorrowed: BigInt! @default(value: "0")
