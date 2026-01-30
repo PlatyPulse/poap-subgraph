@@ -1,0 +1,8 @@
+{
+  "network": "optimism",
+  "address": "0x0000000000000000000000000000000000000000",
+  "startBlock": 0,
+  "veNFTAddress": "0xFAf8FD17D9840595845582fCB047DF13f006787d",
+  "veNFTStartBlock": 0,
+  "isPharaoh": false
+}

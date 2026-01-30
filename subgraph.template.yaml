@@ -1,29 +1,199 @@
 specVersion: 0.0.2
-description: POAP
-repository: https://github.com/poap-xyz/poap-mainnet-subgraph
+description: Portfolio Factory Subgraph
+repository: https://github.com/40-acres-official/poap-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Poap
+    name: PortfolioFactory
     network: {{ network }}
     source:
       address: "{{ address }}"
-      abi: Poap
+      abi: PortfolioFactory
       startBlock: {{ startBlock }}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
-        - EventToken
-        - Transfer
+        - Portfolio
+        - Account
+        - Facet
       abis:
-        - name: Poap
-          file: ./abis/{{ file }}.json
+        - name: PortfolioFactory
+          file: ./abis/PortfolioFactory.json
+        - name: Portfolio
+          file: ./abis/Portfolio.json
       eventHandlers:
-        - event: {{ tokenEvent }}
-          handler: handleEventToken
+        - event: PortfolioRegistered(indexed address,indexed address,indexed address)
+          handler: handlePortfolioRegistered
+      file: ./src/factory.ts
+{{^isPharaoh}}
+  - kind: ethereum/contract
+    name: VotingEscrowTransfer
+    network: {{ network }}
+    source:
+      address: "{{ veNFTAddress }}"
+      abi: VotingEscrowTransfer
+      startBlock: {{ veNFTStartBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - UserAsset
+        - Portfolio
+        - Account
+      abis:
+        - name: VotingEscrowTransfer
+          file: ./abis/VotingEscrowTransfer.json
+      eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleTransfer
-      file: ./src/mapping.ts
+          handler: handleVeNFTTransfer
+      file: ./src/veNFTTransfer.ts
+{{/isPharaoh}}
+{{#isPharaoh}}
+  - kind: ethereum/contract
+    name: PharaohVotingEscrow
+    network: {{ network }}
+    source:
+      address: "{{ veNFTAddress }}"
+      abi: PharaohVotingEscrow
+      startBlock: {{ veNFTStartBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - UserAsset
+        - Portfolio
+        - Account
+      abis:
+        - name: PharaohVotingEscrow
+          file: ./abis/PharaohVotingEscrow.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handlePharaohTransfer
+      file: ./src/pharaohTransfer.ts
+{{/isPharaoh}}
+templates:
+  - kind: ethereum/contract
+    name: Portfolio
+    network: {{ network }}
+    source:
+      abi: Portfolio
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Facet
+        - LockCreated
+        - LockIncreased
+        - LockMerge
+        - Vote
+        - VotingMode
+        - Borrow
+        - Payment
+        - TopUpConfig
+        - TopUp
+        - CollateralEvent
+        - Listing
+        - Purchase
+        - DebtTransfer
+        - LoanPaid
+        - GasReclamationPaid
+        - ProtocolFeePaid
+        - ZeroBalanceFeePaid
+        - LenderPremiumPaid
+        - RewardsProcessed
+        - PaidToRecipient
+        - InvestedToVault
+        - ZeroBalanceRewardsProcessed
+      abis:
+        - name: Portfolio
+          file: ./abis/Portfolio.json
+        - name: VotingEscrowFacet
+          file: ./abis/VotingEscrowFacet.json
+        - name: VotingFacet
+          file: ./abis/VotingFacet.json
+        - name: LendingFacet
+          file: ./abis/LendingFacet.json
+        - name: CollateralFacet
+          file: ./abis/CollateralFacet.json
+        - name: MarketplaceFacet
+          file: ./abis/MarketplaceFacet.json
+        - name: RewardsProcessingFacet
+          file: ./abis/RewardsProcessingFacet.json
+        - name: VotingEscrow
+          file: ./abis/VotingEscrow.json
+      eventHandlers:
+        - event: FacetAdded(indexed address,bytes4[])
+          handler: handleFacetAdded
+        - event: LockIncreased(indexed uint256,uint256,indexed address)
+          handler: handleLockIncreased
+        - event: LockCreated(indexed uint256,uint256,indexed address)
+          handler: handleLockCreated
+        - event: LockMerged(indexed uint256,indexed uint256,uint256,indexed address)
+          handler: handleLockMerged
+        - event: Voted(indexed uint256,address[],uint256[],indexed address)
+          handler: handleVoted
+        - event: VotingModeSet(indexed uint256,bool,indexed address)
+          handler: handleVotingModeSet
+        - event: Borrowed(uint256,uint256,uint256,indexed address)
+          handler: handleBorrowed
+        - event: BorrowedTo(uint256,uint256,uint256,indexed address,indexed address)
+          handler: handleBorrowedTo
+        - event: Paid(uint256,indexed address)
+          handler: handlePaid
+        - event: TopUpSet(bool,indexed address)
+          handler: handleTopUpSet
+        - event: ToppedUp(uint256,uint256,uint256,indexed address)
+          handler: handleToppedUp
+        - event: CollateralAdded(indexed uint256,indexed address)
+          handler: handleCollateralAdded
+        - event: CollateralRemoved(indexed uint256,indexed address)
+          handler: handleCollateralRemoved
+        - event: ListingCreated(indexed uint256,uint256,address,uint256,uint256,indexed address,address)
+          handler: handleListingCreated
+        - event: ListingCancelled(indexed uint256,indexed address)
+          handler: handleListingCancelled
+        - event: PurchaseFinalized(indexed uint256,indexed address,indexed address,uint256,uint256)
+          handler: handlePurchaseFinalized
+        - event: DebtTransferredToBuyer(indexed uint256,indexed address,uint256,uint256,indexed address)
+          handler: handleDebtTransferredToBuyer
+        - event: MarketplaceListingBought(indexed uint256,indexed address,uint256,uint256,indexed address)
+          handler: handleMarketplaceListingBought
+        - event: RewardsOptionSet(uint8,indexed address)
+          handler: handleRewardsOptionSet
+        - event: RewardsTokenSet(address,indexed address)
+          handler: handleRewardsTokenSet
+        - event: RewardsOptionPercentageSet(uint256,indexed address)
+          handler: handleRewardsOptionPercentageSet
+        - event: RecipientSet(address,indexed address)
+          handler: handleRecipientSet
+        - event: InvestedToVault(uint256,indexed uint256,uint256,address,indexed address)
+          handler: handleInvestedToVaultEntity
+        - event: CollateralIncreased(uint256,indexed uint256,uint256,address,indexed address)
+          handler: handleCollateralIncreased
+        - event: PaidToRecipient(uint256,indexed uint256,uint256,address,address,indexed address)
+          handler: handlePaidToRecipientEntity
+        - event: LoanPaid(uint256,indexed uint256,uint256,address,address)
+          handler: handleLoanPaid
+        - event: GasReclamationPaid(uint256,indexed uint256,uint256,address,address)
+          handler: handleGasReclamationPaid
+        - event: ProtocolFeePaid(uint256,indexed uint256,uint256,address,address)
+          handler: handleProtocolFeePaid
+        - event: ZeroBalanceFeePaid(uint256,indexed uint256,uint256,address,address)
+          handler: handleZeroBalanceFeePaid
+        - event: LenderPremiumPaid(uint256,indexed uint256,uint256,address,address)
+          handler: handleLenderPremiumPaid
+        - event: RewardsProcessed(uint256,indexed uint256,uint256,address,address)
+          handler: handleRewardsProcessed
+        - event: PaidToRecipient(uint256,indexed uint256,uint256,address,address,indexed address)
+          handler: handlePaidToRecipientEntity
+        - event: InvestedToVault(uint256,indexed uint256,uint256,address,indexed address)
+          handler: handleInvestedToVaultEntity
+        - event: ZeroBalanceRewardsProcessed(uint256,indexed uint256,uint256,address,address,indexed address)
+          handler: handleZeroBalanceRewardsProcessedEntity
+      file: ./src/portfolioHandlers.ts

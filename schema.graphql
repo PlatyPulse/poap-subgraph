@@ -1,37 +1,351 @@
-type Token @entity
-{
-  id:                           ID!
-  owner:                        Account!
-  event:                        Event
-  transfers:                    [Transfer!]! @derivedFrom(field: "token")
-  transferCount:                BigInt!
-  created:                      BigInt!
-  mintOrder:                    BigInt
+type Portfolio @entity {
+  id: ID! # portfolio address
+  user: Account!
+  createdAt: BigInt!
+  currentLoanAmount: BigInt! @default(value: "0")
+  totalBorrowed: BigInt! @default(value: "0")
+  totalRepaid: BigInt! @default(value: "0")
+  facets: [Facet!]! @derivedFrom(field: "portfolio")
+
+  manualBorrows: [Borrow!]! @derivedFrom(field: "portfolio")
+  topups: [TopUp!]! @derivedFrom(field: "portfolio")
+
+  loanPaids: [LoanPaid!]! @derivedFrom(field: "portfolio")
+  gasReclamationPaids: [GasReclamationPaid!]! @derivedFrom(field: "portfolio")
+  protocolFeePaids: [ProtocolFeePaid!]! @derivedFrom(field: "portfolio")
+  zeroBalanceFeePaids: [ZeroBalanceFeePaid!]! @derivedFrom(field: "portfolio")
+  lenderPremiumPaids: [LenderPremiumPaid!]! @derivedFrom(field: "portfolio")
+  rewardsProcesseds: [RewardsProcessed!]! @derivedFrom(field: "portfolio")
+  paidToRecipients: [PaidToRecipient!]! @derivedFrom(field: "portfolio")
+  investedToVaults: [InvestedToVault!]! @derivedFrom(field: "portfolio")
+  zeroBalanceRewardsProcesseds: [ZeroBalanceRewardsProcessed!]! @derivedFrom(field: "portfolio")
+  automaticRepayments: [AutomaticRepayment!]! @derivedFrom(field: "portfolio")
+  manualRepayments: [ManualRepayment!]! @derivedFrom(field: "portfolio")
+
+  lockCreateds: [LockCreated!]! @derivedFrom(field: "portfolio")
+  lockIncreaseds: [LockIncreased!]! @derivedFrom(field: "portfolio")
+  lockMerges: [LockMerge!]! @derivedFrom(field: "portfolio")
+
+  userAssets: [UserAsset!]! @derivedFrom(field: "portfolio")
+  settings: [Setting!]! @derivedFrom(field: "portfolio")
+
+
+  #Marketplace stuff
+  listings: [Listing!]! @derivedFrom(field: "portfolio")
 }
 
-type Account @entity
-{
-  id:                           ID!
-  tokens:                       [Token!]! @derivedFrom(field: "owner")
-  tokensOwned:                  BigInt!
+type Setting @entity {
+  id: ID! # portfolioId
+  portfolio: Portfolio!
+  RewardsOption: RewardOption! @default(value: 0)
+  TopUpEnabled: Boolean! @default(value: false)
+  IsManualVoting: Boolean! @default(value: false)
 }
 
-type Event @entity
-{
-  id:                           ID!
-  tokens:                       [Token!]! @derivedFrom(field: "event")
-  tokenCount:              	    BigInt!
-  created:                      BigInt!
-  transferCount:                BigInt!
-  tokenMints:                   BigInt!
+type RewardOption @entity {
+  id: ID! # portfolioId
+  portfolio: Portfolio!
+  option: Int!
+  percentage: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
 }
 
-type Transfer @entity
-{
-  id:                           ID!
-  token:                        Token!
-  from:                         Account!
-  to:                           Account!
-  transaction:                  Bytes!
-  timestamp:                    BigInt!
+type AutomaticRepayment @entity {
+  id: ID! # tokenId-epoch OR portfolioId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  amount: BigInt!
+  token: Bytes!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+
+type ManualRepayment @entity {
+  id: ID! # portfolio-{paymentIndex}
+  portfolio: Portfolio!
+  owner: Account!
+  amount: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+type Account @entity {
+  id: ID! # user address
+  portfolios: [Portfolio!]! @derivedFrom(field: "user")
+}
+
+type Facet @entity {
+  id: ID! # portfolioId-facetAddress
+  portfolio: Portfolio!
+  facetAddress: Bytes!
+  selectors: [Bytes!]!
+  addedAt: BigInt!
+  transactionHash: Bytes!
+}
+
+# VotingEscrowFacet Events
+type LockCreated @entity {
+  id: ID! # tokenId
+  portfolio: Portfolio!
+  tokenId: BigInt!
+  owner: Account!
+  amount: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+type LockIncreased @entity {
+  id: ID! # tokenId
+  portfolio: Portfolio!
+  tokenId: BigInt!
+  owner: Account!
+  amount: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+type LockMerge @entity {
+  id: ID! # tokenId-mergeIndex
+  portfolio: Portfolio!
+  fromTokenId: BigInt!
+  toTokenId: BigInt!
+  weightIncrease: BigInt!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+# VotingFacet Events
+type Vote @entity {
+  id: ID! #tokenId-{epoch}
+  epoch: BigInt!
+  pools: [Bytes!]!
+  weights: [BigInt!]!
+  userAsset: UserAsset!
+}
+
+
+# LendingFacet Events
+type Borrow @entity {
+  id: ID! # portfolio-timestamp-logIndex
+  portfolio: Portfolio!
+  owner: Account!
+  amount: BigInt!
+  amountAfterFees: BigInt!
+  originationFee: BigInt!
+  to: Bytes # null for Borrowed, address for BorrowedTo
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+
+type TopUp @entity {
+  id: ID! # portfolio-{topUpIndex}
+  portfolio: Portfolio!
+  owner: Account!
+  amount: BigInt!
+  amountAfterFees: BigInt!
+  originationFee: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+# CollateralFacet Events
+type CollateralEvent @entity {
+  id: ID! # portfolio-tokenId-{eventIndex}
+  portfolio: Portfolio!
+  tokenId: BigInt!
+  owner: Account!
+  eventType: String! # "CollateralAdded" or "CollateralRemoved"
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+# MarketplaceFacet Events
+type Listing @entity {
+  id: ID! # portfolio-tokenId
+  portfolio: Portfolio!
+  tokenId: BigInt!
+  owner: Account!
+  price: BigInt!
+  paymentToken: Bytes!
+  debtAttached: BigInt!
+  expiresAt: BigInt!
+  allowedBuyer: Bytes
+  status: String! # "Active", "Cancelled", "Sold"
+  createdAt: BigInt!
+  cancelledAt: BigInt
+  soldAt: BigInt
+  transactionHash: Bytes!
+}
+
+type Purchase @entity {
+  id: ID! # portfolio-tokenId-{purchaseIndex}
+  portfolio: Portfolio!
+  tokenId: BigInt!
+  seller: Account!
+  buyer: Account!
+  price: BigInt
+  debtAmount: BigInt!
+  unpaidFees: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+type DebtTransfer @entity {
+  id: ID! # portfolio-tokenId-{transferIndex}
+  portfolio: Portfolio!
+  tokenId: BigInt!
+  buyer: Account!
+  seller: Account!
+  debtAmount: BigInt!
+  unpaidFees: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+
+type LoanPaid @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  user: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type GasReclamationPaid @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  user: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type ProtocolFeePaid @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  user: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type ZeroBalanceFeePaid @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  user: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type LenderPremiumPaid @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  user: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type RewardsProcessed @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  rewardsAmount: [BigInt!]!
+  user: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type PaidToRecipient @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  recipient: Account!
+  asset: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type InvestedToVault @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  asset: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type ZeroBalanceRewardsProcessed @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  remainingAmount: [BigInt!]!
+  recipient: Account!
+  asset: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+
+# Custom Entities
+
+type UserAsset @entity {
+  id: ID! #userportoflio address OR token id
+  owner: Account!
+  portfolio: Portfolio!
+  type: String! # "veNFT" or "x33"
+  votes: [Vote!]!
+  amount: BigInt!
+  isManual: Boolean!
+}
+
+# stats
+
+type Stats @entity {
+  id: ID! # stats-epoch
+  epoch: BigInt!
+  totalBorrows: BigInt!
+  totalTopups: BigInt!
+  totalManualRepayments: BigInt!
+  totalAutomaticRepayments: BigInt!
+  totalLoanPaids: BigInt!
+  totalGasReclamationPaids: BigInt!
+  totalProtocolFeePaids: BigInt!
+  totalZeroBalanceFeePaids: BigInt!
+  totalLenderPremiumPaids: BigInt!
+  totalRewardsProcesseds: BigInt!
+  totalPaidToRecipients: BigInt!
+  totalInvestedToVaults: BigInt!
+  totalZeroBalanceRewardsProcesseds: BigInt!
 }

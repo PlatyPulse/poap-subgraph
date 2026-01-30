@@ -4,26 +4,29 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-
-    "prepare:mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml",
     "prepare:xdai": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml",
     "prepare:chiado": "mustache config/chiado.json subgraph.template.yaml > subgraph.yaml",
     "prepare:goerli": "mustache config/goerli.json subgraph.template.yaml > subgraph.yaml",
-
-    "deploy:mainnet": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap",
-    "deploy:xdai": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-xdai",
-    "deploy:chiado": "goldsky subgraph deploy poap-xyz/poap-chiado",
-    "deploy:goerli": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-goerli",
-
+    "prepare:aerodrome": "mustache config/aerodrome.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:velodrome": "mustache config/velodrome.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:pharaoh": "mustache config/pharaoh.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:blackhole": "mustache config/blackhole.json subgraph.template.yaml > subgraph.yaml",
+    "deploy:aerodrome": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-aerodrome",
+    "deploy:velodrome": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-velodrome",
+    "deploy:pharaoh": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-pharaoh",
+    "deploy:blackhole": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-blackhole",
     "create-local": "graph create --node http://localhost:8020/ poap-xyz/poap",
     "remove-local": "graph remove --node http://localhost:8020/ poap-xyz/poap",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 poap-xyz/poap"
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 poap-xyz/poap",
+    "deploy": "node deploy.js"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.51.0",
-    "@graphprotocol/graph-ts": "0.31.0"
+    "@graphprotocol/graph-ts": "0.31.0",
+    "source-map-support": "^0.5.21"
   },
   "devDependencies": {
+    "inquirer": "^8.2.6",
     "mustache": "^4.0.1"
   }
 }

@@ -1,0 +1,8 @@
+{
+  "network": "base",
+  "address": "0x427D890e5794A8B3AB3b9aEe0B3481F5CBCc09C5",
+  "startBlock": 39883672,
+  "veNFTAddress": "0xeBf418Fe2512e7E6bd9b87a8F0f294aCDC67e6B4",
+  "veNFTStartBlock": 39883672,
+  "isPharaoh": false
+}

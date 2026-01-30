@@ -1,0 +1,8 @@
+{
+  "network": "avalanche",
+  "address": "0x0000000000000000000000000000000000000000",
+  "startBlock": 0,
+  "veNFTAddress": "0xEac562811cc6abDbB2c9EE88719eCA4eE79Ad763",
+  "veNFTStartBlock": 0,
+  "isPharaoh": false
+}
