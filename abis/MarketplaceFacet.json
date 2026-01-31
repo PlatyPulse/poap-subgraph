@@ -9,6 +9,12 @@
         "type": "uint256"
       },
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "price",
@@ -31,12 +37,6 @@
         "internalType": "uint256",
         "name": "expiresAt",
         "type": "uint256"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
       },
       {
         "indexed": false,
@@ -179,4 +179,3 @@
     "type": "event"
   }
 ]
-
