@@ -17,6 +17,7 @@ export function handlePortfolioRegistered(event: PortfolioRegisteredEvent): void
   portfolio.currentLoanAmount = BigInt.fromI32(0)
   portfolio.totalBorrowed = BigInt.fromI32(0)
   portfolio.totalRepaid = BigInt.fromI32(0)
+  portfolio.allTimeAssets = []
   portfolio.save()
 
   // Create template for this portfolio to track its events

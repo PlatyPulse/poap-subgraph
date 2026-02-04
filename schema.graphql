@@ -6,6 +6,7 @@ type Portfolio @entity {
   currentLoanAmount: BigInt! @default(value: "0")
   totalBorrowed: BigInt! @default(value: "0")
   totalRepaid: BigInt! @default(value: "0")
+  allTimeAssets: [String!]!
   facets: [Facet!]! @derivedFrom(field: "portfolio")
 
   manualBorrows: [Borrow!]! @derivedFrom(field: "portfolio")
@@ -175,6 +176,7 @@ type Listing @entity {
   debtAttached: BigInt!
   expiresAt: BigInt!
   allowedBuyer: Bytes
+  nonce: BigInt!
   status: String! # "Active", "Cancelled", "Sold"
   createdAt: BigInt!
   cancelledAt: BigInt
@@ -329,6 +331,7 @@ type UserAsset @entity {
   votes: [Vote!]!
   amount: BigInt!
   isManual: Boolean!
+  isCollateral: Boolean!
 }
 
 # stats

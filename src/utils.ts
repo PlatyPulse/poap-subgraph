@@ -14,6 +14,16 @@ export function getPortfolio(address: string): Portfolio | null {
   return Portfolio.load(address)
 }
 
+export function addToAllTimeAssets(portfolio: Portfolio, assetId: string): void {
+  let assets = portfolio.allTimeAssets
+  for (let i = 0; i < assets.length; i++) {
+    if (assets[i] == assetId) return
+  }
+  assets.push(assetId)
+  portfolio.allTimeAssets = assets
+  portfolio.save()
+}
+
 export function getVeNFTAddress(): Address {
   let network = dataSource.network()
   

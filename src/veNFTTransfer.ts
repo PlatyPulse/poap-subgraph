@@ -1,7 +1,7 @@
 import { BigInt, Address, store } from '@graphprotocol/graph-ts'
 import { Transfer as VeNFTTransfer, VotingEscrowTransfer as VotingEscrowContract } from '../generated/VotingEscrowTransfer/VotingEscrowTransfer'
 import { Portfolio, UserAsset } from '../generated/schema'
-import { getOrCreateAccount, getPortfolio } from './utils'
+import { getOrCreateAccount, getPortfolio, addToAllTimeAssets } from './utils'
 
 // Zero address constant
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -65,6 +65,8 @@ export function handleVeNFTTransfer(event: VeNFTTransfer): void {
         userAsset = new UserAsset(userAssetId)
         userAsset.votes = []
         userAsset.isManual = false
+        userAsset.isCollateral = false
+        addToAllTimeAssets(portfolio, userAssetId)
       }
 
       let owner = getOrCreateAccount(portfolio.user)

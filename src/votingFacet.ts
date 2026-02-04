@@ -4,7 +4,7 @@ import {
   VotingModeSet as VotingModeSetEvent,
 } from '../generated/templates/Portfolio/VotingFacet'
 import { Vote, UserAsset } from '../generated/schema'
-import { getPortfolio, getOrCreateAccount } from './utils'
+import { getPortfolio, getOrCreateAccount, addToAllTimeAssets } from './utils'
 
 export function handleVoted(event: VotedEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
@@ -24,8 +24,10 @@ export function handleVoted(event: VotedEvent): void {
     userAsset.type = 'veNFT'
     userAsset.amount = event.params.weights.length > 0 ? event.params.weights[0] : BigInt.fromI32(0) as BigInt
     userAsset.isManual = false
+    userAsset.isCollateral = false
     userAsset.votes = []
     userAsset.save()
+    addToAllTimeAssets(portfolio, userAssetId)
   }
   
   // Vote ID is tokenId-epoch (we'll use block number as epoch for now)

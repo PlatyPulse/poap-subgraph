@@ -1,11 +1,11 @@
-import { BigInt, store, Address } from '@graphprotocol/graph-ts'
+import { BigInt, Address } from '@graphprotocol/graph-ts'
 import {
   CollateralAdded as CollateralAddedEvent,
   CollateralRemoved as CollateralRemovedEvent,
 } from '../generated/templates/Portfolio/CollateralFacet'
 import { VotingEscrow } from '../generated/templates/Portfolio/VotingEscrow'
 import { CollateralEvent, UserAsset } from '../generated/schema'
-import { getPortfolio, getOrCreateAccount, getVeNFTAddress } from './utils'
+import { getPortfolio, getOrCreateAccount, getVeNFTAddress, addToAllTimeAssets } from './utils'
 
 export function handleCollateralAdded(event: CollateralAddedEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
@@ -40,9 +40,13 @@ export function handleCollateralAdded(event: CollateralAddedEvent): void {
     userAsset.type = 'veNFT'
     userAsset.amount = BigInt.fromI32(0)
     userAsset.isManual = false
+    userAsset.isCollateral = false
     userAsset.votes = []
+    addToAllTimeAssets(portfolio, userAssetId)
   }
-  
+
+  userAsset.isCollateral = true
+
   // Fetch balance from veNFT contract
   let veNFTAddress = getVeNFTAddress()
   let veNFTContract = VotingEscrow.bind(veNFTAddress)
@@ -50,7 +54,7 @@ export function handleCollateralAdded(event: CollateralAddedEvent): void {
   if (!balanceResult.reverted) {
     userAsset.amount = balanceResult.value
   }
-  
+
   userAsset.save()
 }
 
@@ -77,11 +81,12 @@ export function handleCollateralRemoved(event: CollateralRemovedEvent): void {
   collateral.transactionHash = event.transaction.hash
   collateral.save()
 
-  // Remove UserAsset when collateral is withdrawn
+  // Mark UserAsset as no longer collateral
   let userAssetId = event.params.tokenId.toString()
   let userAsset = UserAsset.load(userAssetId)
   if (userAsset != null && userAsset.portfolio == portfolio.id) {
-    store.remove('UserAsset', userAssetId)
+    userAsset.isCollateral = false
+    userAsset.save()
   }
 }
 

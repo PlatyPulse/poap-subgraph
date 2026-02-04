@@ -25,10 +25,9 @@ export { handleCollateralAdded, handleCollateralRemoved } from './collateralFace
 // MarketplaceFacet events
 export {
   handleListingCreated,
-  handleListingCancelled,
-  handlePurchaseFinalized,
+  handleListingCanceled,
+  handleListingSold,
   handleDebtTransferredToBuyer,
-  handleMarketplaceListingBought,
 } from './marketplaceFacet'
 
 // RewardsProcessingFacet events

@@ -5,7 +5,7 @@ import {
   LockMerged as LockMergedEvent,
 } from '../generated/templates/Portfolio/VotingEscrowFacet'
 import { LockCreated, LockIncreased, LockMerge, UserAsset } from '../generated/schema'
-import { getPortfolio, getOrCreateAccount } from './utils'
+import { getPortfolio, getOrCreateAccount, addToAllTimeAssets } from './utils'
 
 export function handleLockIncreased(event: LockIncreasedEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
@@ -34,7 +34,9 @@ export function handleLockIncreased(event: LockIncreasedEvent): void {
     userAsset.portfolio = portfolio.id
     userAsset.type = 'veNFT'
     userAsset.isManual = false
+    userAsset.isCollateral = false
     userAsset.votes = []
+    addToAllTimeAssets(portfolio, userAssetId)
   }
   userAsset.amount = event.params.amount
   userAsset.save()
@@ -66,8 +68,10 @@ export function handleLockCreated(event: LockCreatedEvent): void {
   userAsset.type = 'veNFT'
   userAsset.amount = event.params.amount
   userAsset.isManual = false
+  userAsset.isCollateral = false
   userAsset.votes = []
   userAsset.save()
+  addToAllTimeAssets(portfolio, userAssetId)
 }
 
 export function handleLockMerged(event: LockMergedEvent): void {

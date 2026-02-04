@@ -154,16 +154,14 @@ templates:
           handler: handleCollateralAdded
         - event: CollateralRemoved(indexed uint256,indexed address)
           handler: handleCollateralRemoved
-        - event: ListingCreated(indexed uint256,indexed address,uint256,address,uint256,uint256,address)
+        - event: ListingCreated(indexed uint256,indexed address,uint256,address,uint256,uint256,address,uint256)
           handler: handleListingCreated
-        - event: ListingCancelled(indexed uint256,indexed address)
-          handler: handleListingCancelled
-        - event: PurchaseFinalized(indexed uint256,indexed address,indexed address,uint256,uint256)
-          handler: handlePurchaseFinalized
+        - event: ListingCanceled(indexed uint256)
+          handler: handleListingCanceled
+        - event: ListingSold(indexed uint256,indexed address,uint256)
+          handler: handleListingSold
         - event: DebtTransferredToBuyer(indexed uint256,indexed address,uint256,uint256,indexed address)
           handler: handleDebtTransferredToBuyer
-        - event: MarketplaceListingBought(indexed uint256,indexed address,uint256,uint256,indexed address)
-          handler: handleMarketplaceListingBought
         - event: RewardsOptionSet(uint8,indexed address)
           handler: handleRewardsOptionSet
         - event: RewardsTokenSet(address,indexed address)

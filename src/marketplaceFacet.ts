@@ -1,10 +1,9 @@
 import { BigInt } from '@graphprotocol/graph-ts'
 import {
   ListingCreated as ListingCreatedEvent,
-  ListingCancelled as ListingCancelledEvent,
-  PurchaseFinalized as PurchaseFinalizedEvent,
+  ListingCanceled as ListingCanceledEvent,
+  ListingSold as ListingSoldEvent,
   DebtTransferredToBuyer as DebtTransferredToBuyerEvent,
-  MarketplaceListingBought as MarketplaceListingBoughtEvent,
 } from '../generated/templates/Portfolio/MarketplaceFacet'
 import { Listing, Purchase, DebtTransfer } from '../generated/schema'
 import { getPortfolio, getOrCreateAccount } from './utils'
@@ -14,7 +13,7 @@ export function handleListingCreated(event: ListingCreatedEvent): void {
   if (portfolio == null) return
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
-  
+
   let listingId = event.address.toHex()
     .concat('-')
     .concat(event.params.tokenId.toString())
@@ -28,16 +27,14 @@ export function handleListingCreated(event: ListingCreatedEvent): void {
   listing.debtAttached = event.params.debtAttached
   listing.expiresAt = event.params.expiresAt
   listing.allowedBuyer = event.params.allowedBuyer
+  listing.nonce = event.params.nonce
   listing.status = 'Active'
   listing.createdAt = event.block.timestamp
   listing.transactionHash = event.transaction.hash
   listing.save()
 }
 
-export function handleListingCancelled(event: ListingCancelledEvent): void {
-  let portfolio = getPortfolio(event.address.toHex())
-  if (portfolio == null) return
-
+export function handleListingCanceled(event: ListingCanceledEvent): void {
   let listingId = event.address.toHex()
     .concat('-')
     .concat(event.params.tokenId.toString())
@@ -50,13 +47,25 @@ export function handleListingCancelled(event: ListingCancelledEvent): void {
   }
 }
 
-export function handlePurchaseFinalized(event: PurchaseFinalizedEvent): void {
+export function handleListingSold(event: ListingSoldEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
   if (portfolio == null) return
 
-  let seller = getOrCreateAccount(event.params.seller.toHex())
   let buyer = getOrCreateAccount(event.params.buyer.toHex())
-  
+
+  // Update listing status
+  let listingId = event.address.toHex()
+    .concat('-')
+    .concat(event.params.tokenId.toString())
+
+  let listing = Listing.load(listingId)
+  if (listing != null) {
+    listing.status = 'Sold'
+    listing.soldAt = event.block.timestamp
+    listing.save()
+  }
+
+  // Create Purchase record
   let purchaseId = event.address.toHex()
     .concat('-')
     .concat(event.params.tokenId.toString())
@@ -68,24 +77,14 @@ export function handlePurchaseFinalized(event: PurchaseFinalizedEvent): void {
   let purchase = new Purchase(purchaseId)
   purchase.portfolio = portfolio.id
   purchase.tokenId = event.params.tokenId
-  purchase.seller = seller.id
+  purchase.seller = listing != null ? listing.owner : buyer.id
   purchase.buyer = buyer.id
-  purchase.debtAmount = event.params.debtAmount
-  purchase.unpaidFees = event.params.unpaidFees
+  purchase.price = event.params.price
+  purchase.debtAmount = BigInt.fromI32(0)
+  purchase.unpaidFees = BigInt.fromI32(0)
   purchase.createdAt = event.block.timestamp
   purchase.transactionHash = event.transaction.hash
   purchase.save()
-
-  // Update listing status
-  let listingId = event.address.toHex()
-    .concat('-')
-    .concat(event.params.tokenId.toString())
-  let listing = Listing.load(listingId)
-  if (listing != null) {
-    listing.status = 'Sold'
-    listing.soldAt = event.block.timestamp
-    listing.save()
-  }
 }
 
 export function handleDebtTransferredToBuyer(event: DebtTransferredToBuyerEvent): void {
@@ -94,7 +93,7 @@ export function handleDebtTransferredToBuyer(event: DebtTransferredToBuyerEvent)
 
   let buyer = getOrCreateAccount(event.params.buyer.toHex())
   let seller = getOrCreateAccount(event.params.seller.toHex())
-  
+
   let transferId = event.address.toHex()
     .concat('-')
     .concat(event.params.tokenId.toString())
@@ -114,43 +113,3 @@ export function handleDebtTransferredToBuyer(event: DebtTransferredToBuyerEvent)
   transfer.transactionHash = event.transaction.hash
   transfer.save()
 }
-
-export function handleMarketplaceListingBought(event: MarketplaceListingBoughtEvent): void {
-  let portfolio = getPortfolio(event.address.toHex())
-  if (portfolio == null) return
-
-  let owner = getOrCreateAccount(event.params.owner.toHex())
-  let buyer = getOrCreateAccount(event.params.buyer.toHex())
-  
-  let purchaseId = event.address.toHex()
-    .concat('-')
-    .concat(event.params.tokenId.toString())
-    .concat('-')
-    .concat(event.block.number.toString())
-    .concat('-')
-    .concat(event.logIndex.toString())
-
-  let purchase = new Purchase(purchaseId)
-  purchase.portfolio = portfolio.id
-  purchase.tokenId = event.params.tokenId
-  purchase.seller = owner.id
-  purchase.buyer = buyer.id
-  purchase.price = event.params.price
-  purchase.debtAmount = event.params.debtAttached
-  purchase.unpaidFees = BigInt.fromI32(0)
-  purchase.createdAt = event.block.timestamp
-  purchase.transactionHash = event.transaction.hash
-  purchase.save()
-
-  // Update listing status
-  let listingId = event.address.toHex()
-    .concat('-')
-    .concat(event.params.tokenId.toString())
-  let listing = Listing.load(listingId)
-  if (listing != null) {
-    listing.status = 'Sold'
-    listing.soldAt = event.block.timestamp
-    listing.save()
-  }
-}
-
