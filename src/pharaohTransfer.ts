@@ -75,7 +75,6 @@ export function handlePharaohTransfer(event: PharaohTransfer): void {
 
       if (userAsset == null) {
         userAsset = new UserAsset(userAssetId)
-        userAsset.votes = []
         userAsset.isManual = false
         userAsset.isCollateral = false
         addToAllTimeAssets(portfolio, userAssetId)
@@ -84,7 +83,7 @@ export function handlePharaohTransfer(event: PharaohTransfer): void {
       let owner = getOrCreateAccount(portfolio.user)
       userAsset.owner = owner.id
       userAsset.portfolio = portfolio.id
-      userAsset.type = 'veNFT' // Pharaoh is also a veNFT type, just ERC20-based
+      userAsset.type = 'x33'
 
       // Get current balance from contract
       let newBalance = getPharaohBalance(event.address, event.params.to)

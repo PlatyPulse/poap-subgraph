@@ -17,6 +17,7 @@ import {
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import {
   RewardOption,
+  Setting,
   LoanPaid,
   GasReclamationPaid,
   ProtocolFeePaid,
@@ -27,13 +28,7 @@ import {
   InvestedToVault,
   ZeroBalanceRewardsProcessed,
 } from '../generated/schema'
-import { getPortfolio, getOrCreateAccount } from './utils'
-
-export function handleZeroBalanceRewardsProcessed(event: ZeroBalanceRewardsProcessedEvent): void {
-  // This handler is replaced by handleZeroBalanceRewardsProcessedEntity
-  // Keeping for backwards compatibility but delegating to entity handler
-  handleZeroBalanceRewardsProcessedEntity(event)
-}
+import { getPortfolio, getOrCreateAccount, getOrCreateGlobalStats, getOrCreateEpochStats, getOrCreateGlobalTokenStats, getOrCreateEpochTokenStats, getOrCreateSetting } from './utils'
 
 export function handleRewardsOptionSet(event: RewardsOptionSetEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
@@ -54,43 +49,42 @@ export function handleRewardsOptionSet(event: RewardsOptionSetEvent): void {
 }
 
 export function handleRewardsTokenSet(event: RewardsTokenSetEvent): void {
-  // RewardsTokenSet event - no specific entity, handler kept for compatibility
-  // Can be extended in the future if needed
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let setting = getOrCreateSetting(event.address.toHex(), event.block.timestamp, event.transaction.hash)
+  setting.rewardsToken = event.params.rewardsToken
+  setting.save()
 }
 
 export function handleRewardsOptionPercentageSet(event: RewardsOptionPercentageSetEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
   if (portfolio == null) return
 
-  // Update RewardOption entity
   let rewardOptionId = event.address.toHex()
   let rewardOption = RewardOption.load(rewardOptionId)
-  if (rewardOption != null) {
-    rewardOption.percentage = event.params.percentage
-    rewardOption.save()
+  if (rewardOption == null) {
+    rewardOption = new RewardOption(rewardOptionId)
+    rewardOption.portfolio = portfolio.id
+    rewardOption.option = 0
+    rewardOption.createdAt = event.block.timestamp
+    rewardOption.transactionHash = event.transaction.hash
   }
+  rewardOption.percentage = event.params.percentage
+  rewardOption.save()
 }
 
 export function handleRecipientSet(event: RecipientSetEvent): void {
-  // RecipientSet event - no specific entity, handler kept for compatibility
-  // Can be extended in the future if needed
-}
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
 
-export function handleInvestedToVault(event: InvestedToVaultEvent): void {
-  // This handler is replaced by handleInvestedToVaultEntity
-  // Keeping for backwards compatibility but delegating to entity handler
-  handleInvestedToVaultEntity(event)
+  let setting = getOrCreateSetting(event.address.toHex(), event.block.timestamp, event.transaction.hash)
+  setting.recipient = event.params.recipient
+  setting.save()
 }
 
 export function handleCollateralIncreased(event: CollateralIncreasedEvent): void {
-  // CollateralIncreased event - no specific entity, handler kept for compatibility
-  // Can be extended in the future if needed
-}
-
-export function handlePaidToRecipient(event: PaidToRecipientEvent): void {
-  // This handler is replaced by handlePaidToRecipientEntity
-  // Keeping for backwards compatibility but delegating to entity handler
-  handlePaidToRecipientEntity(event)
+  // No entity needed for CollateralIncreased; extend here if required
 }
 
 export function handleLoanPaid(event: LoanPaidEvent): void {
@@ -140,9 +134,28 @@ export function handleLoanPaid(event: LoanPaidEvent): void {
   
   loanPaid.save()
 
-  // Update total repaid (automatic repayment via LoanPaid)
+  // Update portfolio and global stats for automatic repayment
   portfolio.totalRepaid = portfolio.totalRepaid.plus(event.params.amount)
+  if (portfolio.currentLoanAmount.ge(event.params.amount)) {
+    portfolio.currentLoanAmount = portfolio.currentLoanAmount.minus(event.params.amount)
+  } else {
+    portfolio.currentLoanAmount = BigInt.fromI32(0)
+  }
   portfolio.save()
+
+  // Decrement currentBorrowed in GlobalTokenStats
+  let globalTokenStats = getOrCreateGlobalTokenStats(event.params.asset)
+  globalTokenStats.totalRepaid = globalTokenStats.totalRepaid.plus(event.params.amount)
+  if (globalTokenStats.currentBorrowed.ge(event.params.amount)) {
+    globalTokenStats.currentBorrowed = globalTokenStats.currentBorrowed.minus(event.params.amount)
+  } else {
+    globalTokenStats.currentBorrowed = BigInt.fromI32(0)
+  }
+  globalTokenStats.save()
+
+  let epochTokenStats = getOrCreateEpochTokenStats(event.block.timestamp, event.params.asset)
+  epochTokenStats.repaid = epochTokenStats.repaid.plus(event.params.amount)
+  epochTokenStats.save()
 }
 
 export function handleGasReclamationPaid(event: GasReclamationPaidEvent): void {
@@ -376,8 +389,27 @@ export function handleRewardsProcessed(event: RewardsProcessedEvent): void {
   }
   txHashes.push(event.transaction.hash)
   rewardsProcessed.transactionHash = txHashes
-  
+
   rewardsProcessed.save()
+
+  // Update global stats (counts only)
+  let globalStats = getOrCreateGlobalStats(event.block.timestamp)
+  globalStats.lastUpdatedAt = event.block.timestamp
+  globalStats.save()
+
+  // Update epoch stats (counts only)
+  let epochStats = getOrCreateEpochStats(event.block.timestamp)
+  epochStats.lastUpdatedAt = event.block.timestamp
+  epochStats.save()
+
+  // Update token-specific stats for rewards
+  let globalTokenStats = getOrCreateGlobalTokenStats(event.params.asset)
+  globalTokenStats.totalRewards = globalTokenStats.totalRewards.plus(event.params.rewardsAmount)
+  globalTokenStats.save()
+
+  let epochTokenStats = getOrCreateEpochTokenStats(event.block.timestamp, event.params.asset)
+  epochTokenStats.rewards = epochTokenStats.rewards.plus(event.params.rewardsAmount)
+  epochTokenStats.save()
 }
 
 export function handlePaidToRecipientEntity(event: PaidToRecipientEvent): void {

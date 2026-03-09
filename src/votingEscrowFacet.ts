@@ -13,8 +13,11 @@ export function handleLockIncreased(event: LockIncreasedEvent): void {
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
   
-  // LockIncreased ID is just tokenId
   let lockId = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.block.number.toString())
+    .concat('-')
+    .concat(event.logIndex.toString())
 
   let lockIncreased = new LockIncreased(lockId)
   lockIncreased.portfolio = portfolio.id
@@ -35,7 +38,6 @@ export function handleLockIncreased(event: LockIncreasedEvent): void {
     userAsset.type = 'veNFT'
     userAsset.isManual = false
     userAsset.isCollateral = false
-    userAsset.votes = []
     addToAllTimeAssets(portfolio, userAssetId)
   }
   userAsset.amount = event.params.amount
@@ -48,8 +50,11 @@ export function handleLockCreated(event: LockCreatedEvent): void {
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
   
-  // LockCreated ID is just tokenId
   let lockId = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.block.number.toString())
+    .concat('-')
+    .concat(event.logIndex.toString())
 
   let lockCreated = new LockCreated(lockId)
   lockCreated.portfolio = portfolio.id
@@ -60,18 +65,20 @@ export function handleLockCreated(event: LockCreatedEvent): void {
   lockCreated.transactionHash = event.transaction.hash
   lockCreated.save()
   
-  // Create UserAsset
+  // Create or update UserAsset (may already exist from a Transfer event)
   let userAssetId = event.params.tokenId.toString()
-  let userAsset = new UserAsset(userAssetId)
+  let userAsset = UserAsset.load(userAssetId)
+  if (userAsset == null) {
+    userAsset = new UserAsset(userAssetId)
+    userAsset.isManual = false
+    userAsset.isCollateral = false
+    addToAllTimeAssets(portfolio, userAssetId)
+  }
   userAsset.owner = owner.id
   userAsset.portfolio = portfolio.id
   userAsset.type = 'veNFT'
   userAsset.amount = event.params.amount
-  userAsset.isManual = false
-  userAsset.isCollateral = false
-  userAsset.votes = []
   userAsset.save()
-  addToAllTimeAssets(portfolio, userAssetId)
 }
 
 export function handleLockMerged(event: LockMergedEvent): void {
@@ -101,7 +108,6 @@ export function handleLockMerged(event: LockMergedEvent): void {
   let userAsset = UserAsset.load(userAssetId)
   if (userAsset != null) {
     userAsset.amount = userAsset.amount.plus(event.params.weightIncrease)
-    userAsset.votes = []
     userAsset.save()
   }
 }

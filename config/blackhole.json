@@ -4,5 +4,7 @@
   "startBlock": 0,
   "veNFTAddress": "0xEac562811cc6abDbB2c9EE88719eCA4eE79Ad763",
   "veNFTStartBlock": 0,
-  "isPharaoh": false
+  "isPharaoh": false,
+  "marketplaceAddress": "0x0000000000000000000000000000000000000000",
+  "marketplaceStartBlock": 0
 }

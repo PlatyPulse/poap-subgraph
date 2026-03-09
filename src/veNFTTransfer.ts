@@ -63,7 +63,6 @@ export function handleVeNFTTransfer(event: VeNFTTransfer): void {
       let userAsset = UserAsset.load(userAssetId)
       if (userAsset == null) {
         userAsset = new UserAsset(userAssetId)
-        userAsset.votes = []
         userAsset.isManual = false
         userAsset.isCollateral = false
         addToAllTimeAssets(portfolio, userAssetId)

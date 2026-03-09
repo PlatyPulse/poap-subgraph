@@ -1,5 +1,86 @@
-import { Address, dataSource } from '@graphprotocol/graph-ts'
-import { Portfolio, Account } from '../generated/schema'
+import { Address, dataSource, BigInt, Bytes } from '@graphprotocol/graph-ts'
+import { Portfolio, Account, GlobalStats, EpochStats, GlobalTokenStats, EpochTokenStats, Setting, RewardOption } from '../generated/schema'
+import { Portfolio as PortfolioContract } from '../generated/templates/Portfolio/Portfolio'
+import { PortfolioAccountConfig } from '../generated/templates/Portfolio/PortfolioAccountConfig'
+
+// Thursday 00:00 UTC epoch calculation
+// Unix epoch (Jan 1, 1970) was a Thursday, so we can use modulo with week seconds
+const WEEK_SECONDS = BigInt.fromI32(604800) // 7 * 24 * 60 * 60
+
+export function getEpochFromTimestamp(timestamp: BigInt): BigInt {
+  // Round down to the nearest Thursday 00:00 UTC
+  return timestamp.div(WEEK_SECONDS).times(WEEK_SECONDS)
+}
+
+export function getOrCreateGlobalStats(timestamp: BigInt): GlobalStats {
+  let stats = GlobalStats.load('global')
+  if (stats == null) {
+    stats = new GlobalStats('global')
+    stats.totalUsers = BigInt.fromI32(0)
+    stats.totalPortfolios = BigInt.fromI32(0)
+    stats.totalVeNftDeposited = BigInt.fromI32(0)
+    stats.totalVeNftValue = BigInt.fromI32(0)
+    stats.currentVeNft = BigInt.fromI32(0)
+    stats.currentVeNftValue = BigInt.fromI32(0)
+    stats.totalListings = BigInt.fromI32(0)
+    stats.totalSales = BigInt.fromI32(0)
+    stats.activeListings = BigInt.fromI32(0)
+    stats.lastUpdatedAt = timestamp
+  }
+  return stats
+}
+
+export function getOrCreateEpochStats(timestamp: BigInt): EpochStats {
+  let epoch = getEpochFromTimestamp(timestamp)
+  let id = epoch.toString()
+  let stats = EpochStats.load(id)
+  if (stats == null) {
+    stats = new EpochStats(id)
+    stats.epoch = epoch
+    stats.newUsers = BigInt.fromI32(0)
+    stats.newPortfolios = BigInt.fromI32(0)
+    stats.veNftDeposited = BigInt.fromI32(0)
+    stats.veNftValueDeposited = BigInt.fromI32(0)
+    stats.veNftWithdrawn = BigInt.fromI32(0)
+    stats.veNftValueWithdrawn = BigInt.fromI32(0)
+    stats.listings = BigInt.fromI32(0)
+    stats.sales = BigInt.fromI32(0)
+    stats.lastUpdatedAt = timestamp
+  }
+  return stats
+}
+
+export function getOrCreateGlobalTokenStats(token: Bytes): GlobalTokenStats {
+  let id = 'global-'.concat(token.toHexString())
+  let stats = GlobalTokenStats.load(id)
+  if (stats == null) {
+    stats = new GlobalTokenStats(id)
+    stats.globalStats = 'global'
+    stats.token = token
+    stats.totalBorrowed = BigInt.fromI32(0)
+    stats.currentBorrowed = BigInt.fromI32(0)
+    stats.totalRepaid = BigInt.fromI32(0)
+    stats.totalRewards = BigInt.fromI32(0)
+    stats.totalSalesVolume = BigInt.fromI32(0)
+  }
+  return stats
+}
+
+export function getOrCreateEpochTokenStats(timestamp: BigInt, token: Bytes): EpochTokenStats {
+  let epoch = getEpochFromTimestamp(timestamp)
+  let id = epoch.toString().concat('-').concat(token.toHexString())
+  let stats = EpochTokenStats.load(id)
+  if (stats == null) {
+    stats = new EpochTokenStats(id)
+    stats.epochStats = epoch.toString()
+    stats.token = token
+    stats.borrowed = BigInt.fromI32(0)
+    stats.repaid = BigInt.fromI32(0)
+    stats.rewards = BigInt.fromI32(0)
+    stats.salesVolume = BigInt.fromI32(0)
+  }
+  return stats
+}
 
 export function getOrCreateAccount(address: string): Account {
   let account = Account.load(address)
@@ -26,7 +107,7 @@ export function addToAllTimeAssets(portfolio: Portfolio, assetId: string): void 
 
 export function getVeNFTAddress(): Address {
   let network = dataSource.network()
-  
+
   // Map network to veNFT contract address
   if (network == 'base') {
     // Aerodrome
@@ -38,8 +119,65 @@ export function getVeNFTAddress(): Address {
     // Blackhole
     return Address.fromString('0xEac562811cc6abDbB2c9EE88719eCA4eE79Ad763')
   }
-  
+
   // Default fallback (should not happen in production)
   return Address.fromString('0x0000000000000000000000000000000000000000')
 }
 
+// Default borrow token address (USDC on Base) - fallback if contract call fails
+export function getDefaultBorrowToken(): Bytes {
+  let network = dataSource.network()
+
+  if (network == 'base') {
+    return Bytes.fromHexString('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913') // USDC on Base
+  } else if (network == 'optimism') {
+    return Bytes.fromHexString('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85') // USDC on Optimism
+  } else if (network == 'avalanche') {
+    return Bytes.fromHexString('0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E') // USDC on Avalanche
+  }
+
+  return Bytes.fromHexString('0x0000000000000000000000000000000000000000')
+}
+
+export function getOrCreateSetting(portfolioId: string, timestamp: BigInt, txHash: Bytes): Setting {
+  let setting = Setting.load(portfolioId)
+  if (setting == null) {
+    setting = new Setting(portfolioId)
+    setting.portfolio = portfolioId
+    setting.TopUpEnabled = false
+    setting.IsManualVoting = false
+
+    let rewardOption = RewardOption.load(portfolioId)
+    if (rewardOption == null) {
+      rewardOption = new RewardOption(portfolioId)
+      rewardOption.portfolio = portfolioId
+      rewardOption.option = 0
+      rewardOption.percentage = BigInt.fromI32(0)
+      rewardOption.createdAt = timestamp
+      rewardOption.transactionHash = txHash
+      rewardOption.save()
+    }
+    setting.RewardsOption = portfolioId
+  }
+  return setting as Setting
+}
+
+export function getDebtTokenForPortfolio(portfolioAddress: Address): Bytes {
+  // Step 1: Call portfolio.getPortfolioAccountConfig()
+  let portfolioContract = PortfolioContract.bind(portfolioAddress)
+  let configResult = portfolioContract.try_getPortfolioAccountConfig()
+
+  if (configResult.reverted) {
+    return getDefaultBorrowToken()
+  }
+
+  // Step 2: Call accountConfig.getDebtToken()
+  let accountConfigContract = PortfolioAccountConfig.bind(configResult.value)
+  let debtTokenResult = accountConfigContract.try_getDebtToken()
+
+  if (debtTokenResult.reverted) {
+    return getDefaultBorrowToken()
+  }
+
+  return debtTokenResult.value as Bytes
+}

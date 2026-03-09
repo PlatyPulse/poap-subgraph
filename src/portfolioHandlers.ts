@@ -22,24 +22,16 @@ export {
 // CollateralFacet events
 export { handleCollateralAdded, handleCollateralRemoved } from './collateralFacet'
 
-// MarketplaceFacet events
-export {
-  handleListingCreated,
-  handleListingCanceled,
-  handleListingSold,
-  handleDebtTransferredToBuyer,
-} from './marketplaceFacet'
+// MarketplaceFacet events (SaleProceeded from BaseMarketplaceFacet on diamond)
+export { handleSaleProceeded } from './marketplaceFacet'
 
 // RewardsProcessingFacet events
 export {
-  handleZeroBalanceRewardsProcessed,
   handleRewardsOptionSet,
   handleRewardsTokenSet,
   handleRewardsOptionPercentageSet,
   handleRecipientSet,
-  handleInvestedToVault,
   handleCollateralIncreased,
-  handlePaidToRecipient,
   handleLoanPaid,
   handleGasReclamationPaid,
   handleProtocolFeePaid,

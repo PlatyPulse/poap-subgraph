@@ -76,6 +76,34 @@ dataSources:
           handler: handlePharaohTransfer
       file: ./src/pharaohTransfer.ts
 {{/isPharaoh}}
+  - kind: ethereum/contract
+    name: PortfolioMarketplace
+    network: {{ network }}
+    source:
+      address: "{{ marketplaceAddress }}"
+      abi: PortfolioMarketplace
+      startBlock: {{ marketplaceStartBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Listing
+        - ListingHistory
+        - Purchase
+      abis:
+        - name: PortfolioMarketplace
+          file: ./abis/PortfolioMarketplace.json
+        - name: VotingEscrow
+          file: ./abis/VotingEscrow.json
+      eventHandlers:
+        - event: ListingCreated(indexed address,indexed uint256,uint256,address,uint256,address,uint256)
+          handler: handleListingCreated
+        - event: ListingCanceled(indexed address,indexed uint256)
+          handler: handleListingCanceled
+        - event: ListingPurchased(indexed uint256,indexed address,indexed address,uint256,uint256)
+          handler: handleListingPurchased
+      file: ./src/marketplaceContract.ts
 templates:
   - kind: ethereum/contract
     name: Portfolio
@@ -98,9 +126,7 @@ templates:
         - TopUpConfig
         - TopUp
         - CollateralEvent
-        - Listing
-        - Purchase
-        - DebtTransfer
+        - SaleProceeded
         - LoanPaid
         - GasReclamationPaid
         - ProtocolFeePaid
@@ -121,12 +147,12 @@ templates:
           file: ./abis/LendingFacet.json
         - name: CollateralFacet
           file: ./abis/CollateralFacet.json
-        - name: MarketplaceFacet
-          file: ./abis/MarketplaceFacet.json
         - name: RewardsProcessingFacet
           file: ./abis/RewardsProcessingFacet.json
         - name: VotingEscrow
           file: ./abis/VotingEscrow.json
+        - name: PortfolioAccountConfig
+          file: ./abis/PortfolioAccountConfig.json
       eventHandlers:
         - event: FacetAdded(indexed address,bytes4[])
           handler: handleFacetAdded
@@ -154,14 +180,8 @@ templates:
           handler: handleCollateralAdded
         - event: CollateralRemoved(indexed uint256,indexed address)
           handler: handleCollateralRemoved
-        - event: ListingCreated(indexed uint256,indexed address,uint256,address,uint256,uint256,address,uint256)
-          handler: handleListingCreated
-        - event: ListingCanceled(indexed uint256)
-          handler: handleListingCanceled
-        - event: ListingSold(indexed uint256,indexed address,uint256)
-          handler: handleListingSold
-        - event: DebtTransferredToBuyer(indexed uint256,indexed address,uint256,uint256,indexed address)
-          handler: handleDebtTransferredToBuyer
+        - event: SaleProceeded(indexed uint256,indexed address,uint256,uint256)
+          handler: handleSaleProceeded
         - event: RewardsOptionSet(uint8,indexed address)
           handler: handleRewardsOptionSet
         - event: RewardsTokenSet(address,indexed address)
@@ -188,10 +208,6 @@ templates:
           handler: handleLenderPremiumPaid
         - event: RewardsProcessed(uint256,indexed uint256,uint256,address,address)
           handler: handleRewardsProcessed
-        - event: PaidToRecipient(uint256,indexed uint256,uint256,address,address,indexed address)
-          handler: handlePaidToRecipientEntity
-        - event: InvestedToVault(uint256,indexed uint256,uint256,address,indexed address)
-          handler: handleInvestedToVaultEntity
         - event: ZeroBalanceRewardsProcessed(uint256,indexed uint256,uint256,address,address,indexed address)
           handler: handleZeroBalanceRewardsProcessedEntity
       file: ./src/portfolioHandlers.ts

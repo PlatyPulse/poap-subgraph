@@ -4,7 +4,7 @@ import {
   VotingModeSet as VotingModeSetEvent,
 } from '../generated/templates/Portfolio/VotingFacet'
 import { Vote, UserAsset } from '../generated/schema'
-import { getPortfolio, getOrCreateAccount, addToAllTimeAssets } from './utils'
+import { getPortfolio, getOrCreateAccount, addToAllTimeAssets, getEpochFromTimestamp, getOrCreateSetting } from './utils'
 
 export function handleVoted(event: VotedEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
@@ -25,18 +25,17 @@ export function handleVoted(event: VotedEvent): void {
     userAsset.amount = event.params.weights.length > 0 ? event.params.weights[0] : BigInt.fromI32(0) as BigInt
     userAsset.isManual = false
     userAsset.isCollateral = false
-    userAsset.votes = []
     userAsset.save()
     addToAllTimeAssets(portfolio, userAssetId)
   }
-  
-  // Vote ID is tokenId-epoch (we'll use block number as epoch for now)
+
+  let epoch = getEpochFromTimestamp(event.block.timestamp)
   let voteId = event.params.tokenId.toString()
     .concat('-')
-    .concat(event.block.number.toString())
+    .concat(epoch.toString())
 
   let vote = new Vote(voteId)
-  vote.epoch = event.block.number
+  vote.epoch = epoch
   vote.userAsset = userAsset.id
   
   // Convert Address[] to Bytes[]
@@ -50,8 +49,11 @@ export function handleVoted(event: VotedEvent): void {
 }
 
 export function handleVotingModeSet(event: VotingModeSetEvent): void {
-  // VotingModeSet is handled via Setting entity (IsManualVoting field)
-  // This handler can be removed or kept empty if Setting is managed elsewhere
-  // For now, we'll leave it empty as Setting entity should be managed separately
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let setting = getOrCreateSetting(event.address.toHex(), event.block.timestamp, event.transaction.hash)
+  setting.IsManualVoting = event.params.setToManualVoting
+  setting.save()
 }
 

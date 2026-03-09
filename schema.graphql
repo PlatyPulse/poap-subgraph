@@ -21,7 +21,6 @@ type Portfolio @entity {
   paidToRecipients: [PaidToRecipient!]! @derivedFrom(field: "portfolio")
   investedToVaults: [InvestedToVault!]! @derivedFrom(field: "portfolio")
   zeroBalanceRewardsProcesseds: [ZeroBalanceRewardsProcessed!]! @derivedFrom(field: "portfolio")
-  automaticRepayments: [AutomaticRepayment!]! @derivedFrom(field: "portfolio")
   manualRepayments: [ManualRepayment!]! @derivedFrom(field: "portfolio")
 
   lockCreateds: [LockCreated!]! @derivedFrom(field: "portfolio")
@@ -34,6 +33,7 @@ type Portfolio @entity {
 
   #Marketplace stuff
   listings: [Listing!]! @derivedFrom(field: "portfolio")
+  saleProceeded: [SaleProceeded!]! @derivedFrom(field: "portfolio")
 }
 
 type Setting @entity {
@@ -42,6 +42,8 @@ type Setting @entity {
   RewardsOption: RewardOption! @default(value: 0)
   TopUpEnabled: Boolean! @default(value: false)
   IsManualVoting: Boolean! @default(value: false)
+  rewardsToken: Bytes
+  recipient: Bytes
 }
 
 type RewardOption @entity {
@@ -53,22 +55,12 @@ type RewardOption @entity {
   transactionHash: Bytes!
 }
 
-type AutomaticRepayment @entity {
-  id: ID! # tokenId-epoch OR portfolioId-epoch
-  portfolio: Portfolio!
-  epoch: BigInt!
-  amount: BigInt!
-  token: Bytes!
-  createdAt: BigInt!
-  transactionHash: Bytes!
-}
-
-
 type ManualRepayment @entity {
   id: ID! # portfolio-{paymentIndex}
   portfolio: Portfolio!
   owner: Account!
   amount: BigInt!
+  debtToken: Bytes!
   createdAt: BigInt!
   transactionHash: Bytes!
 }
@@ -137,6 +129,7 @@ type Borrow @entity {
   amount: BigInt!
   amountAfterFees: BigInt!
   originationFee: BigInt!
+  debtToken: Bytes!
   to: Bytes # null for Borrowed, address for BorrowedTo
   createdAt: BigInt!
   transactionHash: Bytes!
@@ -170,17 +163,39 @@ type Listing @entity {
   id: ID! # portfolio-tokenId
   portfolio: Portfolio!
   tokenId: BigInt!
+  userAsset: UserAsset
   owner: Account!
   price: BigInt!
   paymentToken: Bytes!
-  debtAttached: BigInt!
   expiresAt: BigInt!
   allowedBuyer: Bytes
   nonce: BigInt!
-  status: String! # "Active", "Cancelled", "Sold"
   createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+type ListingHistory @entity {
+  id: ID! # portfolio-tokenId-timestamp
+  portfolio: Portfolio!
+  tokenId: BigInt!
+  owner: Account!
+  # UserAsset snapshot (not a reference)
+  assetId: String!
+  assetAmount: BigInt!
+  assetType: String!
+  # Listing details
+  price: BigInt!
+  paymentToken: Bytes!
+  expiresAt: BigInt!
+  allowedBuyer: Bytes
+  nonce: BigInt!
+  createdAt: BigInt!
+  # Outcome
+  outcome: String! # "Cancelled" or "Sold"
   cancelledAt: BigInt
   soldAt: BigInt
+  soldTo: Account
+  soldPrice: BigInt
   transactionHash: Bytes!
 }
 
@@ -188,23 +203,21 @@ type Purchase @entity {
   id: ID! # portfolio-tokenId-{purchaseIndex}
   portfolio: Portfolio!
   tokenId: BigInt!
-  seller: Account!
-  buyer: Account!
-  price: BigInt
-  debtAmount: BigInt!
-  unpaidFees: BigInt!
+  seller: Portfolio!
+  buyer: Bytes!
+  price: BigInt!
+  protocolFee: BigInt!
   createdAt: BigInt!
   transactionHash: Bytes!
 }
 
-type DebtTransfer @entity {
-  id: ID! # portfolio-tokenId-{transferIndex}
+type SaleProceeded @entity {
+  id: ID!
   portfolio: Portfolio!
   tokenId: BigInt!
-  buyer: Account!
-  seller: Account!
-  debtAmount: BigInt!
-  unpaidFees: BigInt!
+  buyerPortfolio: Bytes!
+  paymentAmount: BigInt!
+  debtPaid: BigInt!
   createdAt: BigInt!
   transactionHash: Bytes!
 }
@@ -328,7 +341,7 @@ type UserAsset @entity {
   owner: Account!
   portfolio: Portfolio!
   type: String! # "veNFT" or "x33"
-  votes: [Vote!]!
+  votes: [Vote!]! @derivedFrom(field: "userAsset")
   amount: BigInt!
   isManual: Boolean!
   isCollateral: Boolean!
@@ -336,20 +349,69 @@ type UserAsset @entity {
 
 # stats
 
-type Stats @entity {
-  id: ID! # stats-epoch
+type GlobalStats @entity {
+  id: ID! # "global"
+  # Users & Portfolios
+  totalUsers: BigInt!
+  totalPortfolios: BigInt!
+  # veNFT tracking
+  totalVeNftDeposited: BigInt!       # all-time veNFTs deposited
+  totalVeNftValue: BigInt!           # all-time underlying value deposited
+  currentVeNft: BigInt!              # current veNFTs held
+  currentVeNftValue: BigInt!         # current underlying value held
+  # Marketplace (counts only, volume is per-token)
+  totalListings: BigInt!
+  totalSales: BigInt!
+  activeListings: BigInt!
+  # Token-specific stats
+  tokenStats: [GlobalTokenStats!]! @derivedFrom(field: "globalStats")
+  # Timestamps
+  lastUpdatedAt: BigInt!
+}
+
+type GlobalTokenStats @entity {
+  id: ID! # "global-{tokenAddress}"
+  globalStats: GlobalStats!
+  token: Bytes!
+  # Lending
+  totalBorrowed: BigInt!
+  currentBorrowed: BigInt!
+  totalRepaid: BigInt!
+  # Rewards
+  totalRewards: BigInt!
+  # Marketplace
+  totalSalesVolume: BigInt!
+}
+
+type EpochStats @entity {
+  id: ID! # epoch timestamp as string
   epoch: BigInt!
-  totalBorrows: BigInt!
-  totalTopups: BigInt!
-  totalManualRepayments: BigInt!
-  totalAutomaticRepayments: BigInt!
-  totalLoanPaids: BigInt!
-  totalGasReclamationPaids: BigInt!
-  totalProtocolFeePaids: BigInt!
-  totalZeroBalanceFeePaids: BigInt!
-  totalLenderPremiumPaids: BigInt!
-  totalRewardsProcesseds: BigInt!
-  totalPaidToRecipients: BigInt!
-  totalInvestedToVaults: BigInt!
-  totalZeroBalanceRewardsProcesseds: BigInt!
+  # Users & Portfolios
+  newUsers: BigInt!
+  newPortfolios: BigInt!
+  # veNFT tracking
+  veNftDeposited: BigInt!
+  veNftValueDeposited: BigInt!
+  veNftWithdrawn: BigInt!
+  veNftValueWithdrawn: BigInt!
+  # Marketplace (counts only, volume is per-token)
+  listings: BigInt!
+  sales: BigInt!
+  # Token-specific stats
+  tokenStats: [EpochTokenStats!]! @derivedFrom(field: "epochStats")
+  # Timestamps
+  lastUpdatedAt: BigInt!
+}
+
+type EpochTokenStats @entity {
+  id: ID! # "{epoch}-{tokenAddress}"
+  epochStats: EpochStats!
+  token: Bytes!
+  # Lending
+  borrowed: BigInt!
+  repaid: BigInt!
+  # Rewards
+  rewards: BigInt!
+  # Marketplace
+  salesVolume: BigInt!
 }

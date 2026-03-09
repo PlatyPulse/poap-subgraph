@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "inquirer": "^8.2.6",
+    "matchstick-as": "^0.6.0",
     "mustache": "^4.0.1"
   }
 }
