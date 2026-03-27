@@ -31,6 +31,8 @@ type Portfolio @entity {
   settings: [Setting!]! @derivedFrom(field: "portfolio")
 
 
+  activityHistoryItems: [ActivityHistoryItem!]! @derivedFrom(field: "portfolio")
+
   #Marketplace stuff
   listings: [Listing!]! @derivedFrom(field: "portfolio")
   saleProceeded: [SaleProceeded!]! @derivedFrom(field: "portfolio")
@@ -117,6 +119,7 @@ type Vote @entity {
   epoch: BigInt!
   pools: [Bytes!]!
   weights: [BigInt!]!
+  timestamp: BigInt!
   userAsset: UserAsset!
 }
 
@@ -223,8 +226,55 @@ type SaleProceeded @entity {
 }
 
 
+type ActivityHistoryItem @entity {
+  id: ID! # tokenId-epoch
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  user: Account!
+  lockedValue: BigInt!
+  createdAt: BigInt!
+
+  loanPaids: [LoanPaid!]! @derivedFrom(field: "activityHistoryItem")
+  gasReclamationPaids: [GasReclamationPaid!]! @derivedFrom(field: "activityHistoryItem")
+  protocolFeePaids: [ProtocolFeePaid!]! @derivedFrom(field: "activityHistoryItem")
+  zeroBalanceFeePaids: [ZeroBalanceFeePaid!]! @derivedFrom(field: "activityHistoryItem")
+  lenderPremiumPaids: [LenderPremiumPaid!]! @derivedFrom(field: "activityHistoryItem")
+  rewardsProcesseds: [RewardsProcessed!]! @derivedFrom(field: "activityHistoryItem")
+  paidToRecipients: [PaidToRecipient!]! @derivedFrom(field: "activityHistoryItem")
+  investedToVaults: [InvestedToVault!]! @derivedFrom(field: "activityHistoryItem")
+  zeroBalanceRewardsProcesseds: [ZeroBalanceRewardsProcessed!]! @derivedFrom(field: "activityHistoryItem")
+  collateralIncreaseds: [CollateralIncreased!]! @derivedFrom(field: "activityHistoryItem")
+  rebaseClaimeds: [RebaseClaimed!]! @derivedFrom(field: "activityHistoryItem")
+}
+
+type RebaseClaimed @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type CollateralIncreased @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  owner: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
 type LoanPaid @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -237,6 +287,7 @@ type LoanPaid @entity {
 
 type GasReclamationPaid @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -249,6 +300,7 @@ type GasReclamationPaid @entity {
 
 type ProtocolFeePaid @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -261,6 +313,7 @@ type ProtocolFeePaid @entity {
 
 type ZeroBalanceFeePaid @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -273,6 +326,7 @@ type ZeroBalanceFeePaid @entity {
 
 type LenderPremiumPaid @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -285,6 +339,7 @@ type LenderPremiumPaid @entity {
 
 type RewardsProcessed @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -297,6 +352,7 @@ type RewardsProcessed @entity {
 
 type PaidToRecipient @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -310,6 +366,7 @@ type PaidToRecipient @entity {
 
 type InvestedToVault @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -322,6 +379,7 @@ type InvestedToVault @entity {
 
 type ZeroBalanceRewardsProcessed @entity {
   id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!

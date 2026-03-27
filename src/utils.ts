@@ -1,7 +1,8 @@
 import { Address, dataSource, BigInt, Bytes } from '@graphprotocol/graph-ts'
-import { Portfolio, Account, GlobalStats, EpochStats, GlobalTokenStats, EpochTokenStats, Setting, RewardOption } from '../generated/schema'
+import { Portfolio, Account, GlobalStats, EpochStats, GlobalTokenStats, EpochTokenStats, Setting, RewardOption, ActivityHistoryItem } from '../generated/schema'
 import { Portfolio as PortfolioContract } from '../generated/templates/Portfolio/Portfolio'
 import { PortfolioAccountConfig } from '../generated/templates/Portfolio/PortfolioAccountConfig'
+import { VotingEscrow } from '../generated/templates/Portfolio/VotingEscrow'
 
 // Thursday 00:00 UTC epoch calculation
 // Unix epoch (Jan 1, 1970) was a Thursday, so we can use modulo with week seconds
@@ -80,6 +81,31 @@ export function getOrCreateEpochTokenStats(timestamp: BigInt, token: Bytes): Epo
     stats.salesVolume = BigInt.fromI32(0)
   }
   return stats
+}
+
+export function getOrCreateActivityHistoryItem(tokenId: BigInt, epoch: BigInt, portfolioId: string, userId: string, timestamp: BigInt): ActivityHistoryItem {
+  let id = tokenId.toString().concat('-').concat(epoch.toString())
+  let item = ActivityHistoryItem.load(id)
+  if (item == null) {
+    item = new ActivityHistoryItem(id)
+    item.portfolio = portfolioId
+    item.epoch = epoch
+    item.tokenId = tokenId
+    item.user = userId
+    item.createdAt = timestamp
+
+    let veNFTAddress = getVeNFTAddress()
+    let veNFTContract = VotingEscrow.bind(veNFTAddress)
+    let balanceResult = veNFTContract.try_balanceOfNFTAt(tokenId, timestamp)
+    if (!balanceResult.reverted) {
+      item.lockedValue = balanceResult.value
+    } else {
+      item.lockedValue = BigInt.fromI32(0)
+    }
+
+    item.save()
+  }
+  return item
 }
 
 export function getOrCreateAccount(address: string): Account {

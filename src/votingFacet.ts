@@ -45,6 +45,7 @@ export function handleVoted(event: VotedEvent): void {
   }
   vote.pools = pools
   vote.weights = event.params.weights
+  vote.timestamp = event.block.timestamp
   vote.save()
 }
 

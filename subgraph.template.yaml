@@ -136,6 +136,9 @@ templates:
         - PaidToRecipient
         - InvestedToVault
         - ZeroBalanceRewardsProcessed
+        - RebaseClaimed
+        - ActivityHistoryItem
+        - CollateralIncreased
       abis:
         - name: Portfolio
           file: ./abis/Portfolio.json
@@ -153,6 +156,8 @@ templates:
           file: ./abis/VotingEscrow.json
         - name: PortfolioAccountConfig
           file: ./abis/PortfolioAccountConfig.json
+        - name: ClaimingFacet
+          file: ./abis/ClaimingFacet.json
       eventHandlers:
         - event: FacetAdded(indexed address,bytes4[])
           handler: handleFacetAdded
@@ -210,4 +215,6 @@ templates:
           handler: handleRewardsProcessed
         - event: ZeroBalanceRewardsProcessed(uint256,indexed uint256,uint256,address,address,indexed address)
           handler: handleZeroBalanceRewardsProcessedEntity
+        - event: RebaseClaimed(indexed uint256,uint256)
+          handler: handleRebaseClaimed
       file: ./src/portfolioHandlers.ts

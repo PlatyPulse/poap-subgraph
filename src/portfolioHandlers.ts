@@ -43,3 +43,6 @@ export {
   handleZeroBalanceRewardsProcessedEntity,
 } from './rewardsProcessingFacet'
 
+// ClaimingFacet events
+export { handleRebaseClaimed } from './claimingFacet'
+

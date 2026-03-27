@@ -27,8 +27,9 @@ import {
   PaidToRecipient,
   InvestedToVault,
   ZeroBalanceRewardsProcessed,
+  CollateralIncreased,
 } from '../generated/schema'
-import { getPortfolio, getOrCreateAccount, getOrCreateGlobalStats, getOrCreateEpochStats, getOrCreateGlobalTokenStats, getOrCreateEpochTokenStats, getOrCreateSetting } from './utils'
+import { getPortfolio, getOrCreateAccount, getOrCreateGlobalStats, getOrCreateEpochStats, getOrCreateGlobalTokenStats, getOrCreateEpochTokenStats, getOrCreateSetting, getOrCreateActivityHistoryItem } from './utils'
 
 export function handleRewardsOptionSet(event: RewardsOptionSetEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
@@ -84,7 +85,53 @@ export function handleRecipientSet(event: RecipientSetEvent): void {
 }
 
 export function handleCollateralIncreased(event: CollateralIncreasedEvent): void {
-  // No entity needed for CollateralIncreased; extend here if required
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let owner = getOrCreateAccount(event.params.owner.toHex())
+
+  let id = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.params.epoch.toString())
+
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
+  let collateralIncreased = CollateralIncreased.load(id)
+  if (collateralIncreased == null) {
+    collateralIncreased = new CollateralIncreased(id)
+    collateralIncreased.activityHistoryItem = activityHistoryItem.id
+    collateralIncreased.portfolio = portfolio.id
+    collateralIncreased.epoch = event.params.epoch
+    collateralIncreased.tokenId = event.params.tokenId
+    collateralIncreased.owner = owner.id
+    collateralIncreased.amount = new Array<BigInt>()
+    collateralIncreased.asset = new Array<Bytes>()
+    collateralIncreased.transactionHash = new Array<Bytes>()
+    collateralIncreased.createdAt = event.block.timestamp
+  }
+
+  let amounts = collateralIncreased.amount
+  if (amounts == null) {
+    amounts = new Array<BigInt>()
+  }
+  amounts.push(event.params.amount)
+  collateralIncreased.amount = amounts
+
+  let assets = collateralIncreased.asset
+  if (assets == null) {
+    assets = new Array<Bytes>()
+  }
+  assets.push(event.params.asset)
+  collateralIncreased.asset = assets
+
+  let txHashes = collateralIncreased.transactionHash
+  if (txHashes == null) {
+    txHashes = new Array<Bytes>()
+  }
+  txHashes.push(event.transaction.hash)
+  collateralIncreased.transactionHash = txHashes
+
+  collateralIncreased.save()
 }
 
 export function handleLoanPaid(event: LoanPaidEvent): void {
@@ -97,9 +144,12 @@ export function handleLoanPaid(event: LoanPaidEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, user.id, event.block.timestamp)
+
   let loanPaid = LoanPaid.load(loanPaidId)
   if (loanPaid == null) {
     loanPaid = new LoanPaid(loanPaidId)
+    loanPaid.activityHistoryItem = activityHistoryItem.id
     loanPaid.portfolio = portfolio.id
     loanPaid.epoch = event.params.epoch
     loanPaid.tokenId = event.params.tokenId
@@ -168,9 +218,12 @@ export function handleGasReclamationPaid(event: GasReclamationPaidEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, user.id, event.block.timestamp)
+
   let gasReclamationPaid = GasReclamationPaid.load(id)
   if (gasReclamationPaid == null) {
     gasReclamationPaid = new GasReclamationPaid(id)
+    gasReclamationPaid.activityHistoryItem = activityHistoryItem.id
     gasReclamationPaid.portfolio = portfolio.id
     gasReclamationPaid.epoch = event.params.epoch
     gasReclamationPaid.tokenId = event.params.tokenId
@@ -215,9 +268,12 @@ export function handleProtocolFeePaid(event: ProtocolFeePaidEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, user.id, event.block.timestamp)
+
   let protocolFeePaid = ProtocolFeePaid.load(id)
   if (protocolFeePaid == null) {
     protocolFeePaid = new ProtocolFeePaid(id)
+    protocolFeePaid.activityHistoryItem = activityHistoryItem.id
     protocolFeePaid.portfolio = portfolio.id
     protocolFeePaid.epoch = event.params.epoch
     protocolFeePaid.tokenId = event.params.tokenId
@@ -262,9 +318,12 @@ export function handleZeroBalanceFeePaid(event: ZeroBalanceFeePaidEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, user.id, event.block.timestamp)
+
   let zeroBalanceFeePaid = ZeroBalanceFeePaid.load(id)
   if (zeroBalanceFeePaid == null) {
     zeroBalanceFeePaid = new ZeroBalanceFeePaid(id)
+    zeroBalanceFeePaid.activityHistoryItem = activityHistoryItem.id
     zeroBalanceFeePaid.portfolio = portfolio.id
     zeroBalanceFeePaid.epoch = event.params.epoch
     zeroBalanceFeePaid.tokenId = event.params.tokenId
@@ -309,9 +368,12 @@ export function handleLenderPremiumPaid(event: LenderPremiumPaidEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, user.id, event.block.timestamp)
+
   let lenderPremiumPaid = LenderPremiumPaid.load(id)
   if (lenderPremiumPaid == null) {
     lenderPremiumPaid = new LenderPremiumPaid(id)
+    lenderPremiumPaid.activityHistoryItem = activityHistoryItem.id
     lenderPremiumPaid.portfolio = portfolio.id
     lenderPremiumPaid.epoch = event.params.epoch
     lenderPremiumPaid.tokenId = event.params.tokenId
@@ -356,9 +418,12 @@ export function handleRewardsProcessed(event: RewardsProcessedEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, user.id, event.block.timestamp)
+
   let rewardsProcessed = RewardsProcessed.load(id)
   if (rewardsProcessed == null) {
     rewardsProcessed = new RewardsProcessed(id)
+    rewardsProcessed.activityHistoryItem = activityHistoryItem.id
     rewardsProcessed.portfolio = portfolio.id
     rewardsProcessed.epoch = event.params.epoch
     rewardsProcessed.tokenId = event.params.tokenId
@@ -423,9 +488,12 @@ export function handlePaidToRecipientEntity(event: PaidToRecipientEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
   let paidToRecipient = PaidToRecipient.load(id)
   if (paidToRecipient == null) {
     paidToRecipient = new PaidToRecipient(id)
+    paidToRecipient.activityHistoryItem = activityHistoryItem.id
     paidToRecipient.portfolio = portfolio.id
     paidToRecipient.epoch = event.params.epoch
     paidToRecipient.tokenId = event.params.tokenId
@@ -471,9 +539,12 @@ export function handleInvestedToVaultEntity(event: InvestedToVaultEvent): void {
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
   let investedToVault = InvestedToVault.load(id)
   if (investedToVault == null) {
     investedToVault = new InvestedToVault(id)
+    investedToVault.activityHistoryItem = activityHistoryItem.id
     investedToVault.portfolio = portfolio.id
     investedToVault.epoch = event.params.epoch
     investedToVault.tokenId = event.params.tokenId
@@ -519,9 +590,12 @@ export function handleZeroBalanceRewardsProcessedEntity(event: ZeroBalanceReward
     .concat('-')
     .concat(event.params.epoch.toString())
 
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
   let zeroBalanceRewardsProcessed = ZeroBalanceRewardsProcessed.load(id)
   if (zeroBalanceRewardsProcessed == null) {
     zeroBalanceRewardsProcessed = new ZeroBalanceRewardsProcessed(id)
+    zeroBalanceRewardsProcessed.activityHistoryItem = activityHistoryItem.id
     zeroBalanceRewardsProcessed.portfolio = portfolio.id
     zeroBalanceRewardsProcessed.epoch = event.params.epoch
     zeroBalanceRewardsProcessed.tokenId = event.params.tokenId
