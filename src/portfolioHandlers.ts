@@ -41,6 +41,12 @@ export {
   handlePaidToRecipientEntity,
   handleInvestedToVaultEntity,
   handleZeroBalanceRewardsProcessedEntity,
+  handleDebtPaid,
+  handleTransferFailed,
+  handleActiveBalanceRewardsProcessed,
+  handleSwapFailed,
+  handleInvestToVaultFailed,
+  handleIncreaseCollateralFailed,
 } from './rewardsProcessingFacet'
 
 // ClaimingFacet events

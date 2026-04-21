@@ -21,6 +21,12 @@ type Portfolio @entity {
   paidToRecipients: [PaidToRecipient!]! @derivedFrom(field: "portfolio")
   investedToVaults: [InvestedToVault!]! @derivedFrom(field: "portfolio")
   zeroBalanceRewardsProcesseds: [ZeroBalanceRewardsProcessed!]! @derivedFrom(field: "portfolio")
+  debtPaids: [DebtPaid!]! @derivedFrom(field: "portfolio")
+  transferFaileds: [TransferFailed!]! @derivedFrom(field: "portfolio")
+  activeBalanceRewardsProcesseds: [ActiveBalanceRewardsProcessed!]! @derivedFrom(field: "portfolio")
+  swapFaileds: [SwapFailed!]! @derivedFrom(field: "portfolio")
+  investToVaultFaileds: [InvestToVaultFailed!]! @derivedFrom(field: "portfolio")
+  increaseCollateralFaileds: [IncreaseCollateralFailed!]! @derivedFrom(field: "portfolio")
   manualRepayments: [ManualRepayment!]! @derivedFrom(field: "portfolio")
 
   lockCreateds: [LockCreated!]! @derivedFrom(field: "portfolio")
@@ -246,6 +252,12 @@ type ActivityHistoryItem @entity {
   zeroBalanceRewardsProcesseds: [ZeroBalanceRewardsProcessed!]! @derivedFrom(field: "activityHistoryItem")
   collateralIncreaseds: [CollateralIncreased!]! @derivedFrom(field: "activityHistoryItem")
   rebaseClaimeds: [RebaseClaimed!]! @derivedFrom(field: "activityHistoryItem")
+  debtPaids: [DebtPaid!]! @derivedFrom(field: "activityHistoryItem")
+  transferFaileds: [TransferFailed!]! @derivedFrom(field: "activityHistoryItem")
+  activeBalanceRewardsProcesseds: [ActiveBalanceRewardsProcessed!]! @derivedFrom(field: "activityHistoryItem")
+  swapFaileds: [SwapFailed!]! @derivedFrom(field: "activityHistoryItem")
+  investToVaultFaileds: [InvestToVaultFailed!]! @derivedFrom(field: "activityHistoryItem")
+  increaseCollateralFaileds: [IncreaseCollateralFailed!]! @derivedFrom(field: "activityHistoryItem")
 }
 
 type RebaseClaimed @entity {
@@ -267,7 +279,6 @@ type CollateralIncreased @entity {
   tokenId: BigInt!
   amount: [BigInt!]!
   owner: Account!
-  asset: [Bytes!]!
   createdAt: BigInt!
   transactionHash: [Bytes!]!
 }
@@ -386,6 +397,85 @@ type ZeroBalanceRewardsProcessed @entity {
   remainingAmount: [BigInt!]!
   recipient: Account!
   asset: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type DebtPaid @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  recipient: Account!
+  asset: [Bytes!]!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type TransferFailed @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  recipient: Account!
+  asset: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type ActiveBalanceRewardsProcessed @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  asset: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type SwapFailed @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  inputAmount: [BigInt!]!
+  inputToken: [Bytes!]!
+  outputToken: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type InvestToVaultFailed @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
+  asset: [Bytes!]!
+  owner: Account!
+  createdAt: BigInt!
+  transactionHash: [Bytes!]!
+}
+
+type IncreaseCollateralFailed @entity {
+  id: ID! # tokenId-epoch
+  activityHistoryItem: ActivityHistoryItem!
+  portfolio: Portfolio!
+  epoch: BigInt!
+  tokenId: BigInt!
+  amount: [BigInt!]!
   owner: Account!
   createdAt: BigInt!
   transactionHash: [Bytes!]!

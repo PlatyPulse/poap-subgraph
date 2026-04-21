@@ -13,6 +13,12 @@ import {
   ZeroBalanceFeePaid as ZeroBalanceFeePaidEvent,
   LenderPremiumPaid as LenderPremiumPaidEvent,
   RewardsProcessed as RewardsProcessedEvent,
+  DebtPaid as DebtPaidEvent,
+  TransferFailed as TransferFailedEvent,
+  ActiveBalanceRewardsProcessed as ActiveBalanceRewardsProcessedEvent,
+  SwapFailed as SwapFailedEvent,
+  InvestToVaultFailed as InvestToVaultFailedEvent,
+  IncreaseCollateralFailed as IncreaseCollateralFailedEvent,
 } from '../generated/templates/Portfolio/RewardsProcessingFacet'
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import {
@@ -28,6 +34,12 @@ import {
   InvestedToVault,
   ZeroBalanceRewardsProcessed,
   CollateralIncreased,
+  DebtPaid,
+  TransferFailed,
+  ActiveBalanceRewardsProcessed,
+  SwapFailed,
+  InvestToVaultFailed,
+  IncreaseCollateralFailed,
 } from '../generated/schema'
 import { getPortfolio, getOrCreateAccount, getOrCreateGlobalStats, getOrCreateEpochStats, getOrCreateGlobalTokenStats, getOrCreateEpochTokenStats, getOrCreateSetting, getOrCreateActivityHistoryItem } from './utils'
 
@@ -105,7 +117,6 @@ export function handleCollateralIncreased(event: CollateralIncreasedEvent): void
     collateralIncreased.tokenId = event.params.tokenId
     collateralIncreased.owner = owner.id
     collateralIncreased.amount = new Array<BigInt>()
-    collateralIncreased.asset = new Array<Bytes>()
     collateralIncreased.transactionHash = new Array<Bytes>()
     collateralIncreased.createdAt = event.block.timestamp
   }
@@ -116,13 +127,6 @@ export function handleCollateralIncreased(event: CollateralIncreasedEvent): void
   }
   amounts.push(event.params.amount)
   collateralIncreased.amount = amounts
-
-  let assets = collateralIncreased.asset
-  if (assets == null) {
-    assets = new Array<Bytes>()
-  }
-  assets.push(event.params.asset)
-  collateralIncreased.asset = assets
 
   let txHashes = collateralIncreased.transactionHash
   if (txHashes == null) {
@@ -627,6 +631,308 @@ export function handleZeroBalanceRewardsProcessedEntity(event: ZeroBalanceReward
   }
   txHashes.push(event.transaction.hash)
   zeroBalanceRewardsProcessed.transactionHash = txHashes
-  
+
   zeroBalanceRewardsProcessed.save()
+}
+
+export function handleDebtPaid(event: DebtPaidEvent): void {
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let recipient = getOrCreateAccount(event.params.recipient.toHex())
+
+  let id = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.params.epoch.toString())
+
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, recipient.id, event.block.timestamp)
+
+  let debtPaid = DebtPaid.load(id)
+  if (debtPaid == null) {
+    debtPaid = new DebtPaid(id)
+    debtPaid.activityHistoryItem = activityHistoryItem.id
+    debtPaid.portfolio = portfolio.id
+    debtPaid.epoch = event.params.epoch
+    debtPaid.tokenId = event.params.tokenId
+    debtPaid.recipient = recipient.id
+    debtPaid.amount = new Array<BigInt>()
+    debtPaid.asset = new Array<Bytes>()
+    debtPaid.transactionHash = new Array<Bytes>()
+    debtPaid.createdAt = event.block.timestamp
+  }
+
+  let amounts = debtPaid.amount
+  if (amounts == null) {
+    amounts = new Array<BigInt>()
+  }
+  amounts.push(event.params.amount)
+  debtPaid.amount = amounts
+
+  let assets = debtPaid.asset
+  if (assets == null) {
+    assets = new Array<Bytes>()
+  }
+  assets.push(event.params.asset)
+  debtPaid.asset = assets
+
+  let txHashes = debtPaid.transactionHash
+  if (txHashes == null) {
+    txHashes = new Array<Bytes>()
+  }
+  txHashes.push(event.transaction.hash)
+  debtPaid.transactionHash = txHashes
+
+  debtPaid.save()
+}
+
+export function handleTransferFailed(event: TransferFailedEvent): void {
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let recipient = getOrCreateAccount(event.params.recipient.toHex())
+  let owner = getOrCreateAccount(event.params.owner.toHex())
+
+  let id = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.params.epoch.toString())
+
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
+  let transferFailed = TransferFailed.load(id)
+  if (transferFailed == null) {
+    transferFailed = new TransferFailed(id)
+    transferFailed.activityHistoryItem = activityHistoryItem.id
+    transferFailed.portfolio = portfolio.id
+    transferFailed.epoch = event.params.epoch
+    transferFailed.tokenId = event.params.tokenId
+    transferFailed.recipient = recipient.id
+    transferFailed.owner = owner.id
+    transferFailed.amount = new Array<BigInt>()
+    transferFailed.asset = new Array<Bytes>()
+    transferFailed.transactionHash = new Array<Bytes>()
+    transferFailed.createdAt = event.block.timestamp
+  }
+
+  let amounts = transferFailed.amount
+  if (amounts == null) {
+    amounts = new Array<BigInt>()
+  }
+  amounts.push(event.params.amount)
+  transferFailed.amount = amounts
+
+  let assets = transferFailed.asset
+  if (assets == null) {
+    assets = new Array<Bytes>()
+  }
+  assets.push(event.params.asset)
+  transferFailed.asset = assets
+
+  let txHashes = transferFailed.transactionHash
+  if (txHashes == null) {
+    txHashes = new Array<Bytes>()
+  }
+  txHashes.push(event.transaction.hash)
+  transferFailed.transactionHash = txHashes
+
+  transferFailed.save()
+}
+
+export function handleActiveBalanceRewardsProcessed(event: ActiveBalanceRewardsProcessedEvent): void {
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let owner = getOrCreateAccount(event.params.owner.toHex())
+
+  let id = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.params.epoch.toString())
+
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
+  let activeBalanceRewardsProcessed = ActiveBalanceRewardsProcessed.load(id)
+  if (activeBalanceRewardsProcessed == null) {
+    activeBalanceRewardsProcessed = new ActiveBalanceRewardsProcessed(id)
+    activeBalanceRewardsProcessed.activityHistoryItem = activityHistoryItem.id
+    activeBalanceRewardsProcessed.portfolio = portfolio.id
+    activeBalanceRewardsProcessed.epoch = event.params.epoch
+    activeBalanceRewardsProcessed.tokenId = event.params.tokenId
+    activeBalanceRewardsProcessed.owner = owner.id
+    activeBalanceRewardsProcessed.amount = new Array<BigInt>()
+    activeBalanceRewardsProcessed.asset = new Array<Bytes>()
+    activeBalanceRewardsProcessed.transactionHash = new Array<Bytes>()
+    activeBalanceRewardsProcessed.createdAt = event.block.timestamp
+  }
+
+  let amounts = activeBalanceRewardsProcessed.amount
+  if (amounts == null) {
+    amounts = new Array<BigInt>()
+  }
+  amounts.push(event.params.amount)
+  activeBalanceRewardsProcessed.amount = amounts
+
+  let assets = activeBalanceRewardsProcessed.asset
+  if (assets == null) {
+    assets = new Array<Bytes>()
+  }
+  assets.push(event.params.asset)
+  activeBalanceRewardsProcessed.asset = assets
+
+  let txHashes = activeBalanceRewardsProcessed.transactionHash
+  if (txHashes == null) {
+    txHashes = new Array<Bytes>()
+  }
+  txHashes.push(event.transaction.hash)
+  activeBalanceRewardsProcessed.transactionHash = txHashes
+
+  activeBalanceRewardsProcessed.save()
+}
+
+export function handleSwapFailed(event: SwapFailedEvent): void {
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let owner = getOrCreateAccount(event.params.owner.toHex())
+
+  let id = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.params.epoch.toString())
+
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
+  let swapFailed = SwapFailed.load(id)
+  if (swapFailed == null) {
+    swapFailed = new SwapFailed(id)
+    swapFailed.activityHistoryItem = activityHistoryItem.id
+    swapFailed.portfolio = portfolio.id
+    swapFailed.epoch = event.params.epoch
+    swapFailed.tokenId = event.params.tokenId
+    swapFailed.owner = owner.id
+    swapFailed.inputAmount = new Array<BigInt>()
+    swapFailed.inputToken = new Array<Bytes>()
+    swapFailed.outputToken = new Array<Bytes>()
+    swapFailed.transactionHash = new Array<Bytes>()
+    swapFailed.createdAt = event.block.timestamp
+  }
+
+  let inputAmounts = swapFailed.inputAmount
+  if (inputAmounts == null) {
+    inputAmounts = new Array<BigInt>()
+  }
+  inputAmounts.push(event.params.inputAmount)
+  swapFailed.inputAmount = inputAmounts
+
+  let inputTokens = swapFailed.inputToken
+  if (inputTokens == null) {
+    inputTokens = new Array<Bytes>()
+  }
+  inputTokens.push(event.params.inputToken)
+  swapFailed.inputToken = inputTokens
+
+  let outputTokens = swapFailed.outputToken
+  if (outputTokens == null) {
+    outputTokens = new Array<Bytes>()
+  }
+  outputTokens.push(event.params.outputToken)
+  swapFailed.outputToken = outputTokens
+
+  let txHashes = swapFailed.transactionHash
+  if (txHashes == null) {
+    txHashes = new Array<Bytes>()
+  }
+  txHashes.push(event.transaction.hash)
+  swapFailed.transactionHash = txHashes
+
+  swapFailed.save()
+}
+
+export function handleInvestToVaultFailed(event: InvestToVaultFailedEvent): void {
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let owner = getOrCreateAccount(event.params.owner.toHex())
+
+  let id = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.params.epoch.toString())
+
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
+  let investToVaultFailed = InvestToVaultFailed.load(id)
+  if (investToVaultFailed == null) {
+    investToVaultFailed = new InvestToVaultFailed(id)
+    investToVaultFailed.activityHistoryItem = activityHistoryItem.id
+    investToVaultFailed.portfolio = portfolio.id
+    investToVaultFailed.epoch = event.params.epoch
+    investToVaultFailed.tokenId = event.params.tokenId
+    investToVaultFailed.owner = owner.id
+    investToVaultFailed.amount = new Array<BigInt>()
+    investToVaultFailed.asset = new Array<Bytes>()
+    investToVaultFailed.transactionHash = new Array<Bytes>()
+    investToVaultFailed.createdAt = event.block.timestamp
+  }
+
+  let amounts = investToVaultFailed.amount
+  if (amounts == null) {
+    amounts = new Array<BigInt>()
+  }
+  amounts.push(event.params.amount)
+  investToVaultFailed.amount = amounts
+
+  let assets = investToVaultFailed.asset
+  if (assets == null) {
+    assets = new Array<Bytes>()
+  }
+  assets.push(event.params.asset)
+  investToVaultFailed.asset = assets
+
+  let txHashes = investToVaultFailed.transactionHash
+  if (txHashes == null) {
+    txHashes = new Array<Bytes>()
+  }
+  txHashes.push(event.transaction.hash)
+  investToVaultFailed.transactionHash = txHashes
+
+  investToVaultFailed.save()
+}
+
+export function handleIncreaseCollateralFailed(event: IncreaseCollateralFailedEvent): void {
+  let portfolio = getPortfolio(event.address.toHex())
+  if (portfolio == null) return
+
+  let owner = getOrCreateAccount(event.params.owner.toHex())
+
+  let id = event.params.tokenId.toString()
+    .concat('-')
+    .concat(event.params.epoch.toString())
+
+  let activityHistoryItem = getOrCreateActivityHistoryItem(event.params.tokenId, event.params.epoch, portfolio.id, owner.id, event.block.timestamp)
+
+  let increaseCollateralFailed = IncreaseCollateralFailed.load(id)
+  if (increaseCollateralFailed == null) {
+    increaseCollateralFailed = new IncreaseCollateralFailed(id)
+    increaseCollateralFailed.activityHistoryItem = activityHistoryItem.id
+    increaseCollateralFailed.portfolio = portfolio.id
+    increaseCollateralFailed.epoch = event.params.epoch
+    increaseCollateralFailed.tokenId = event.params.tokenId
+    increaseCollateralFailed.owner = owner.id
+    increaseCollateralFailed.amount = new Array<BigInt>()
+    increaseCollateralFailed.transactionHash = new Array<Bytes>()
+    increaseCollateralFailed.createdAt = event.block.timestamp
+  }
+
+  let amounts = increaseCollateralFailed.amount
+  if (amounts == null) {
+    amounts = new Array<BigInt>()
+  }
+  amounts.push(event.params.amount)
+  increaseCollateralFailed.amount = amounts
+
+  let txHashes = increaseCollateralFailed.transactionHash
+  if (txHashes == null) {
+    txHashes = new Array<Bytes>()
+  }
+  txHashes.push(event.transaction.hash)
+  increaseCollateralFailed.transactionHash = txHashes
+
+  increaseCollateralFailed.save()
 }

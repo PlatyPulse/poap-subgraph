@@ -139,6 +139,12 @@ templates:
         - RebaseClaimed
         - ActivityHistoryItem
         - CollateralIncreased
+        - DebtPaid
+        - TransferFailed
+        - ActiveBalanceRewardsProcessed
+        - SwapFailed
+        - InvestToVaultFailed
+        - IncreaseCollateralFailed
       abis:
         - name: Portfolio
           file: ./abis/Portfolio.json
@@ -197,9 +203,9 @@ templates:
           handler: handleRecipientSet
         - event: InvestedToVault(uint256,indexed uint256,uint256,address,indexed address)
           handler: handleInvestedToVaultEntity
-        - event: CollateralIncreased(uint256,indexed uint256,uint256,address,indexed address)
+        - event: CollateralIncreased(uint256,indexed uint256,uint256,indexed address)
           handler: handleCollateralIncreased
-        - event: PaidToRecipient(uint256,indexed uint256,uint256,address,address,indexed address)
+        - event: PaidToRecipient(uint256,indexed uint256,uint256,indexed address,address,indexed address)
           handler: handlePaidToRecipientEntity
         - event: LoanPaid(uint256,indexed uint256,uint256,address,address)
           handler: handleLoanPaid
@@ -213,8 +219,20 @@ templates:
           handler: handleLenderPremiumPaid
         - event: RewardsProcessed(uint256,indexed uint256,uint256,address,address)
           handler: handleRewardsProcessed
-        - event: ZeroBalanceRewardsProcessed(uint256,indexed uint256,uint256,address,address,indexed address)
+        - event: ZeroBalanceRewardsProcessed(uint256,indexed uint256,uint256,indexed address,address,indexed address)
           handler: handleZeroBalanceRewardsProcessedEntity
+        - event: DebtPaid(uint256,indexed uint256,uint256,address,address)
+          handler: handleDebtPaid
+        - event: TransferFailed(uint256,indexed uint256,uint256,indexed address,address,indexed address)
+          handler: handleTransferFailed
+        - event: ActiveBalanceRewardsProcessed(uint256,indexed uint256,uint256,address,indexed address)
+          handler: handleActiveBalanceRewardsProcessed
+        - event: SwapFailed(uint256,indexed uint256,uint256,address,address,indexed address)
+          handler: handleSwapFailed
+        - event: InvestToVaultFailed(uint256,indexed uint256,uint256,address,indexed address)
+          handler: handleInvestToVaultFailed
+        - event: IncreaseCollateralFailed(uint256,indexed uint256,uint256,indexed address)
+          handler: handleIncreaseCollateralFailed
         - event: RebaseClaimed(indexed uint256,uint256)
           handler: handleRebaseClaimed
       file: ./src/portfolioHandlers.ts
