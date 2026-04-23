@@ -30,7 +30,9 @@ export function handleVoted(event: VotedEvent): void {
   }
 
   let epoch = getEpochFromTimestamp(event.block.timestamp)
-  let voteId = event.params.tokenId.toString()
+  let voteId = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(epoch.toString())
 

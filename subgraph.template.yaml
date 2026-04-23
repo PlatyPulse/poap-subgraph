@@ -76,6 +76,7 @@ dataSources:
           handler: handlePharaohTransfer
       file: ./src/pharaohTransfer.ts
 {{/isPharaoh}}
+{{#hasMarketplace}}
   - kind: ethereum/contract
     name: PortfolioMarketplace
     network: {{ network }}
@@ -104,6 +105,7 @@ dataSources:
         - event: ListingPurchased(indexed uint256,indexed address,indexed address,uint256,uint256)
           handler: handleListingPurchased
       file: ./src/marketplaceContract.ts
+{{/hasMarketplace}}
 templates:
   - kind: ethereum/contract
     name: Portfolio

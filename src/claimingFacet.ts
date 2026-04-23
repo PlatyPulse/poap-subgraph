@@ -11,7 +11,9 @@ export function handleRebaseClaimed(event: RebaseClaimedEvent): void {
 
   let epoch = getEpochFromTimestamp(event.block.timestamp)
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(epoch.toString())
 

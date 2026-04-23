@@ -102,7 +102,9 @@ export function handleCollateralIncreased(event: CollateralIncreasedEvent): void
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -144,7 +146,9 @@ export function handleLoanPaid(event: LoanPaidEvent): void {
 
   let user = getOrCreateAccount(event.params.user.toHex())
   
-  let loanPaidId = event.params.tokenId.toString()
+  let loanPaidId = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -218,7 +222,9 @@ export function handleGasReclamationPaid(event: GasReclamationPaidEvent): void {
 
   let user = getOrCreateAccount(event.params.user.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -268,7 +274,9 @@ export function handleProtocolFeePaid(event: ProtocolFeePaidEvent): void {
 
   let user = getOrCreateAccount(event.params.user.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -318,7 +326,9 @@ export function handleZeroBalanceFeePaid(event: ZeroBalanceFeePaidEvent): void {
 
   let user = getOrCreateAccount(event.params.user.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -368,7 +378,9 @@ export function handleLenderPremiumPaid(event: LenderPremiumPaidEvent): void {
 
   let user = getOrCreateAccount(event.params.user.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -418,7 +430,9 @@ export function handleRewardsProcessed(event: RewardsProcessedEvent): void {
 
   let user = getOrCreateAccount(event.params.user.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -488,7 +502,9 @@ export function handlePaidToRecipientEntity(event: PaidToRecipientEvent): void {
   let recipient = getOrCreateAccount(event.params.recipient.toHex())
   let owner = getOrCreateAccount(event.params.owner.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -539,7 +555,9 @@ export function handleInvestedToVaultEntity(event: InvestedToVaultEvent): void {
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -590,7 +608,9 @@ export function handleZeroBalanceRewardsProcessedEntity(event: ZeroBalanceReward
   let recipient = getOrCreateAccount(event.params.recipient.toHex())
   let owner = getOrCreateAccount(event.params.owner.toHex())
   
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -641,7 +661,9 @@ export function handleDebtPaid(event: DebtPaidEvent): void {
 
   let recipient = getOrCreateAccount(event.params.recipient.toHex())
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -692,7 +714,9 @@ export function handleTransferFailed(event: TransferFailedEvent): void {
   let recipient = getOrCreateAccount(event.params.recipient.toHex())
   let owner = getOrCreateAccount(event.params.owner.toHex())
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -743,7 +767,9 @@ export function handleActiveBalanceRewardsProcessed(event: ActiveBalanceRewardsP
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -793,7 +819,9 @@ export function handleSwapFailed(event: SwapFailedEvent): void {
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -851,7 +879,9 @@ export function handleInvestToVaultFailed(event: InvestToVaultFailedEvent): void
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 
@@ -901,7 +931,9 @@ export function handleIncreaseCollateralFailed(event: IncreaseCollateralFailedEv
 
   let owner = getOrCreateAccount(event.params.owner.toHex())
 
-  let id = event.params.tokenId.toString()
+  let id = portfolio.id
+    .concat('-')
+    .concat(event.params.tokenId.toString())
     .concat('-')
     .concat(event.params.epoch.toString())
 

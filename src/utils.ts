@@ -84,7 +84,7 @@ export function getOrCreateEpochTokenStats(timestamp: BigInt, token: Bytes): Epo
 }
 
 export function getOrCreateActivityHistoryItem(tokenId: BigInt, epoch: BigInt, portfolioId: string, userId: string, timestamp: BigInt): ActivityHistoryItem {
-  let id = tokenId.toString().concat('-').concat(epoch.toString())
+  let id = portfolioId.concat('-').concat(tokenId.toString()).concat('-').concat(epoch.toString())
   let item = ActivityHistoryItem.load(id)
   if (item == null) {
     item = new ActivityHistoryItem(id)
@@ -144,6 +144,9 @@ export function getVeNFTAddress(): Address {
   } else if (network == 'avalanche') {
     // Blackhole
     return Address.fromString('0xEac562811cc6abDbB2c9EE88719eCA4eE79Ad763')
+  } else if (network == 'mainnet') {
+    // YieldBasis ETH (ERC20 — balanceOfNFTAt will revert and fall back gracefully)
+    return Address.fromString('0x01791F726B4103694969820be083196cC7c045fF')
   }
 
   // Default fallback (should not happen in production)
@@ -160,6 +163,8 @@ export function getDefaultBorrowToken(): Bytes {
     return Bytes.fromHexString('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85') // USDC on Optimism
   } else if (network == 'avalanche') {
     return Bytes.fromHexString('0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E') // USDC on Avalanche
+  } else if (network == 'mainnet') {
+    return Bytes.fromHexString('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48') // USDC on Ethereum mainnet
   }
 
   return Bytes.fromHexString('0x0000000000000000000000000000000000000000')

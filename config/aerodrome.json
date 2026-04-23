@@ -1,10 +1,11 @@
 {
   "network": "base",
-  "address": "0x427D890e5794A8B3AB3b9aEe0B3481F5CBCc09C5",
-  "startBlock": 39883672,
+  "address": "0x40Ac2e40ACb7bdD6EC83E468143262fe216529ec",
+  "startBlock": 44060499,
   "veNFTAddress": "0xeBf418Fe2512e7E6bd9b87a8F0f294aCDC67e6B4",
-  "veNFTStartBlock": 39883672,
+  "veNFTStartBlock": 44060499,
   "isPharaoh": false,
-  "marketplaceAddress": "0x7b22D5D5753B76B5AAF2cC0ac11457e069b9f2C8",
-  "marketplaceStartBlock": 39883672
+  "hasMarketplace": true,
+  "marketplaceAddress": "0xA62C351b3DEDAB4C3e0Cab59B1bc9E5e3097BdF6",
+  "marketplaceStartBlock": 44060499
 }

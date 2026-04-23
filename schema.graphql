@@ -121,7 +121,7 @@ type LockMerge @entity {
 
 # VotingFacet Events
 type Vote @entity {
-  id: ID! #tokenId-{epoch}
+  id: ID! # portfolio-tokenId-epoch
   epoch: BigInt!
   pools: [Bytes!]!
   weights: [BigInt!]!
@@ -233,7 +233,7 @@ type SaleProceeded @entity {
 
 
 type ActivityHistoryItem @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   portfolio: Portfolio!
   epoch: BigInt!
   tokenId: BigInt!
@@ -261,7 +261,7 @@ type ActivityHistoryItem @entity {
 }
 
 type RebaseClaimed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -272,7 +272,7 @@ type RebaseClaimed @entity {
 }
 
 type CollateralIncreased @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -284,7 +284,7 @@ type CollateralIncreased @entity {
 }
 
 type LoanPaid @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -297,7 +297,7 @@ type LoanPaid @entity {
 }
 
 type GasReclamationPaid @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -310,7 +310,7 @@ type GasReclamationPaid @entity {
 }
 
 type ProtocolFeePaid @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -323,7 +323,7 @@ type ProtocolFeePaid @entity {
 }
 
 type ZeroBalanceFeePaid @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -336,7 +336,7 @@ type ZeroBalanceFeePaid @entity {
 }
 
 type LenderPremiumPaid @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -349,7 +349,7 @@ type LenderPremiumPaid @entity {
 }
 
 type RewardsProcessed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -362,7 +362,7 @@ type RewardsProcessed @entity {
 }
 
 type PaidToRecipient @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -376,7 +376,7 @@ type PaidToRecipient @entity {
 }
 
 type InvestedToVault @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -389,7 +389,7 @@ type InvestedToVault @entity {
 }
 
 type ZeroBalanceRewardsProcessed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -403,7 +403,7 @@ type ZeroBalanceRewardsProcessed @entity {
 }
 
 type DebtPaid @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -416,7 +416,7 @@ type DebtPaid @entity {
 }
 
 type TransferFailed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -430,7 +430,7 @@ type TransferFailed @entity {
 }
 
 type ActiveBalanceRewardsProcessed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -443,7 +443,7 @@ type ActiveBalanceRewardsProcessed @entity {
 }
 
 type SwapFailed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -457,7 +457,7 @@ type SwapFailed @entity {
 }
 
 type InvestToVaultFailed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!
@@ -470,7 +470,7 @@ type InvestToVaultFailed @entity {
 }
 
 type IncreaseCollateralFailed @entity {
-  id: ID! # tokenId-epoch
+  id: ID! # portfolio-tokenId-epoch
   activityHistoryItem: ActivityHistoryItem!
   portfolio: Portfolio!
   epoch: BigInt!

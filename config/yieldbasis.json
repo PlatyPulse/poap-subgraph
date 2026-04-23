@@ -1,0 +1,11 @@
+{
+  "network": "mainnet",
+  "address": "0x40Ac2e40ACb7bdD6EC83E468143262fe216529ec",
+  "startBlock": 24938546,
+  "veNFTAddress": "0x01791F726B4103694969820be083196cC7c045fF",
+  "veNFTStartBlock": 24938546,
+  "isPharaoh": true,
+  "hasMarketplace": false,
+  "marketplaceAddress": "0x0000000000000000000000000000000000000000",
+  "marketplaceStartBlock": 24938546
+}

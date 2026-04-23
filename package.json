@@ -11,6 +11,8 @@
     "prepare:velodrome": "mustache config/velodrome.json subgraph.template.yaml > subgraph.yaml",
     "prepare:pharaoh": "mustache config/pharaoh.json subgraph.template.yaml > subgraph.yaml",
     "prepare:blackhole": "mustache config/blackhole.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:supernova": "mustache config/supernova.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:yieldbasis": "mustache config/yieldbasis.json subgraph.template.yaml > subgraph.yaml",
     "deploy:aerodrome": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-aerodrome",
     "deploy:velodrome": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-velodrome",
     "deploy:pharaoh": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ poap-xyz/poap-pharaoh",
