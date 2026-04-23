@@ -66,3 +66,5 @@ subgraph.yaml
 build
 generated
 .deploy-versions.json
+# Mustache-generated per-deployment TS config
+src/generated-config.ts

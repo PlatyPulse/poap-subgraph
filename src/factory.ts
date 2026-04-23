@@ -3,8 +3,24 @@ import { Portfolio, Account } from '../generated/schema'
 import { Portfolio as PortfolioTemplate } from '../generated/templates'
 import { getOrCreateAccount, getOrCreateGlobalStats, getOrCreateEpochStats } from './utils'
 import { BigInt } from '@graphprotocol/graph-ts'
+import { ALLOWED_SUB_FACTORIES } from './generated-config'
 
 export function handlePortfolioRegistered(event: PortfolioRegisteredEvent): void {
+  // Filter: only index portfolios from this subgraph's configured sub-factories. Multiple
+  // subgraphs can share a PortfolioFactory on the same chain (e.g. Supernova + YieldBasis on
+  // mainnet); the indexed `factory` event param disambiguates which asset family owns the portfolio.
+  let eventFactory = event.params.factory.toHexString().toLowerCase()
+  let matched = false
+  for (let i = 0; i < ALLOWED_SUB_FACTORIES.length; i++) {
+    if (ALLOWED_SUB_FACTORIES[i] == eventFactory) {
+      matched = true
+      break
+    }
+  }
+  if (!matched) {
+    return
+  }
+
   // Check if this is a new user
   let existingAccount = Account.load(event.params.owner.toHex())
   let isNewUser = existingAccount == null
@@ -41,6 +57,7 @@ export function handlePortfolioRegistered(event: PortfolioRegisteredEvent): void
   globalStats.save()
   epochStats.save()
 
-  // Create template for this portfolio to track its events
+  // Create template for this portfolio to track its events. Per-deployment addresses
+  // (veNFT, borrow token) are read from src/generated-config.ts directly by downstream handlers.
   PortfolioTemplate.create(event.params.portfolio)
 }

@@ -1,5 +1,6 @@
-import { Address, dataSource, BigInt, Bytes } from '@graphprotocol/graph-ts'
+import { Address, BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Portfolio, Account, GlobalStats, EpochStats, GlobalTokenStats, EpochTokenStats, Setting, RewardOption, ActivityHistoryItem } from '../generated/schema'
+import { VE_NFT_ADDRESS, DEFAULT_BORROW_TOKEN } from './generated-config'
 import { Portfolio as PortfolioContract } from '../generated/templates/Portfolio/Portfolio'
 import { PortfolioAccountConfig } from '../generated/templates/Portfolio/PortfolioAccountConfig'
 import { VotingEscrow } from '../generated/templates/Portfolio/VotingEscrow'
@@ -131,43 +132,15 @@ export function addToAllTimeAssets(portfolio: Portfolio, assetId: string): void 
   portfolio.save()
 }
 
+// Per-deployment addresses come from generated-config.ts (mustache-rendered from
+// config/<name>.json on every prepare step). This lets multiple subgraphs coexist on the same
+// network — e.g. Supernova and YieldBasis both on mainnet — without clobbering each other.
 export function getVeNFTAddress(): Address {
-  let network = dataSource.network()
-
-  // Map network to veNFT contract address
-  if (network == 'base') {
-    // Aerodrome
-    return Address.fromString('0xeBf418Fe2512e7E6bd9b87a8F0f294aCDC67e6B4')
-  } else if (network == 'optimism') {
-    // Velodrome
-    return Address.fromString('0xFAf8FD17D9840595845582fCB047DF13f006787d')
-  } else if (network == 'avalanche') {
-    // Blackhole
-    return Address.fromString('0xEac562811cc6abDbB2c9EE88719eCA4eE79Ad763')
-  } else if (network == 'mainnet') {
-    // YieldBasis ETH (ERC20 — balanceOfNFTAt will revert and fall back gracefully)
-    return Address.fromString('0x01791F726B4103694969820be083196cC7c045fF')
-  }
-
-  // Default fallback (should not happen in production)
-  return Address.fromString('0x0000000000000000000000000000000000000000')
+  return VE_NFT_ADDRESS
 }
 
-// Default borrow token address (USDC on Base) - fallback if contract call fails
 export function getDefaultBorrowToken(): Bytes {
-  let network = dataSource.network()
-
-  if (network == 'base') {
-    return Bytes.fromHexString('0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913') // USDC on Base
-  } else if (network == 'optimism') {
-    return Bytes.fromHexString('0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85') // USDC on Optimism
-  } else if (network == 'avalanche') {
-    return Bytes.fromHexString('0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E') // USDC on Avalanche
-  } else if (network == 'mainnet') {
-    return Bytes.fromHexString('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48') // USDC on Ethereum mainnet
-  }
-
-  return Bytes.fromHexString('0x0000000000000000000000000000000000000000')
+  return DEFAULT_BORROW_TOKEN
 }
 
 export function getOrCreateSetting(portfolioId: string, timestamp: BigInt, txHash: Bytes): Setting {

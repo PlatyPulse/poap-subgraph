@@ -126,6 +126,19 @@ Queries that **only use field filters** (`where: { epoch: ..., portfolio: ... }`
 
 ---
 
+## Cross-asset subgraph scoping (no frontend change required)
+
+Multiple subgraphs can share a PortfolioFactory on the same chain (e.g. Supernova + YieldBasis
+ETH both on mainnet). Each subgraph now filters `PortfolioRegistered` events by an allowlist of
+sub-factory addresses (configured per deployment in `config/<name>.json` → `portfolioSubFactories`),
+so each subgraph only indexes portfolios belonging to its asset family.
+
+**Frontend impact:** none — no schema change, no ID change, no query change. Data content is now
+correctly scoped: queries that previously returned a mix of Supernova and YieldBasis portfolios
+will now return only the portfolios belonging to the subgraph being queried.
+
+---
+
 ## YieldBasis ETH subgraph notes
 
 - Network: Ethereum mainnet

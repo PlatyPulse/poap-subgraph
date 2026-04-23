@@ -7,5 +7,7 @@
   "isPharaoh": false,
   "hasMarketplace": true,
   "marketplaceAddress": "0xA62C351b3DEDAB4C3e0Cab59B1bc9E5e3097BdF6",
-  "marketplaceStartBlock": 44060499
+  "marketplaceStartBlock": 44060499,
+  "portfolioSubFactories": "0xC3b96D5e971407902c563194bf8386ca5DaD787B,0x967361472f99Fedc26A2B8BB3cfc1d0966979c8e",
+  "defaultBorrowToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 }
