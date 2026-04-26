@@ -5,6 +5,7 @@
   "veNFTAddress": "0xeBf418Fe2512e7E6bd9b87a8F0f294aCDC67e6B4",
   "veNFTStartBlock": 44060499,
   "isPharaoh": false,
+  "useDepositEvents": false,
   "hasMarketplace": true,
   "marketplaceAddress": "0xA62C351b3DEDAB4C3e0Cab59B1bc9E5e3097BdF6",
   "marketplaceStartBlock": 44060499,

@@ -33,6 +33,9 @@ type Portfolio @entity {
   lockIncreaseds: [LockIncreased!]! @derivedFrom(field: "portfolio")
   lockMerges: [LockMerge!]! @derivedFrom(field: "portfolio")
 
+  deposits: [Deposit!]! @derivedFrom(field: "portfolio")
+  withdrawals: [Withdrawal!]! @derivedFrom(field: "portfolio")
+
   userAssets: [UserAsset!]! @derivedFrom(field: "portfolio")
   settings: [Setting!]! @derivedFrom(field: "portfolio")
 
@@ -103,6 +106,27 @@ type LockIncreased @entity {
   portfolio: Portfolio!
   tokenId: BigInt!
   owner: Account!
+  amount: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+# ERC20-portfolio events (e.g. YieldBasis ETH). Emitted by the portfolio diamond when a user
+# deposits or withdraws the underlying asset. UserAsset.amount is updated as a running total.
+type Deposit @entity {
+  id: ID! # portfolio-blockNumber-logIndex
+  portfolio: Portfolio!
+  user: Account!
+  amount: BigInt!
+  sharesMinted: BigInt!
+  createdAt: BigInt!
+  transactionHash: Bytes!
+}
+
+type Withdrawal @entity {
+  id: ID! # portfolio-blockNumber-logIndex
+  portfolio: Portfolio!
+  to: Account!
   amount: BigInt!
   createdAt: BigInt!
   transactionHash: Bytes!

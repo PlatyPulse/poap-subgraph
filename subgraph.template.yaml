@@ -28,6 +28,7 @@ dataSources:
         - event: PortfolioRegistered(indexed address,indexed address,indexed address)
           handler: handlePortfolioRegistered
       file: ./src/factory.ts
+{{^useDepositEvents}}
 {{^isPharaoh}}
   - kind: ethereum/contract
     name: VotingEscrowTransfer
@@ -76,6 +77,7 @@ dataSources:
           handler: handlePharaohTransfer
       file: ./src/pharaohTransfer.ts
 {{/isPharaoh}}
+{{/useDepositEvents}}
 {{#hasMarketplace}}
   - kind: ethereum/contract
     name: PortfolioMarketplace
@@ -147,6 +149,9 @@ templates:
         - SwapFailed
         - InvestToVaultFailed
         - IncreaseCollateralFailed
+        - Deposit
+        - Withdrawal
+        - UserAsset
       abis:
         - name: Portfolio
           file: ./abis/Portfolio.json
@@ -237,4 +242,10 @@ templates:
           handler: handleIncreaseCollateralFailed
         - event: RebaseClaimed(indexed uint256,uint256)
           handler: handleRebaseClaimed
+{{#useDepositEvents}}
+        - event: Deposited(indexed address,uint256,uint256)
+          handler: handleDeposited
+        - event: Withdrawn(indexed address,uint256)
+          handler: handleWithdrawn
+{{/useDepositEvents}}
       file: ./src/portfolioHandlers.ts

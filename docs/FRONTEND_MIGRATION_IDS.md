@@ -139,12 +139,57 @@ will now return only the portfolios belonging to the subgraph being queried.
 
 ---
 
+## ERC20-portfolio events: `Deposit` + `Withdrawal` (new)
+
+Deployments where the portfolio diamond emits its own `Deposited` / `Withdrawn` events
+(currently: YieldBasis ETH) populate two new entities and skip the asset-side `Transfer`
+indexing path entirely:
+
+| Entity | ID | Notes |
+|---|---|---|
+| `Deposit` | `{portfolio}-{block}-{logIndex}` | Per-deposit history. `amount` (underlying), `sharesMinted`, `user`, `transactionHash`. |
+| `Withdrawal` | `{portfolio}-{block}-{logIndex}` | Per-withdrawal history. `amount`, `to`, `transactionHash`. |
+
+`UserAsset` for these deployments is keyed by `portfolio_address` and `amount` is a running net
+(deposits minus withdrawals), `type = "erc20"`. One UserAsset per portfolio.
+
+Query example for a portfolio's deposit history:
+
+```graphql
+{
+  portfolio(id: "0xabc...") {
+    deposits(orderBy: createdAt, orderDirection: desc) {
+      id
+      amount
+      sharesMinted
+      user { id }
+      createdAt
+    }
+    withdrawals(orderBy: createdAt, orderDirection: desc) {
+      id
+      amount
+      to { id }
+      createdAt
+    }
+    userAssets {
+      amount
+      type
+    }
+  }
+}
+```
+
+---
+
 ## YieldBasis ETH subgraph notes
 
 - Network: Ethereum mainnet
 - PortfolioFactory: `0x40Ac2e40ACb7bdD6EC83E468143262fe216529ec`
-- YieldBasis ETH token (ERC20): `0x01791F726B4103694969820be083196cC7c045fF`
+- YieldBasis ETH token (ERC20): `0x931d40dd07b25b91932b481b63631ea86d236e09`
 - startBlock: `24938546`
 - No marketplace — `Listing`, `ListingHistory`, `Purchase`, `SaleProceeded` entities will not be populated on this subgraph.
 - `tokenId` in all events will be `"0"` — always scope queries by `portfolio` id to get per-user data.
-- `UserAsset` on this subgraph is keyed by portfolio address (via `handlePharaohTransfer`), not by token id.
+- `UserAsset` on this subgraph is keyed by portfolio address. Populated from the portfolio
+  diamond's `Deposited` / `Withdrawn` events (see section above), not from the asset's `Transfer`
+  events. The `PharaohVotingEscrow` Transfer dataSource is intentionally not included for this
+  subgraph — the diamond events are the canonical signal.

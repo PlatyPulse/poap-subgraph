@@ -52,3 +52,6 @@ export {
 // ClaimingFacet events
 export { handleRebaseClaimed } from './claimingFacet'
 
+// ERC20-portfolio deposit/withdraw events (yieldbasis-style)
+export { handleDeposited, handleWithdrawn } from './erc20DepositFacet'
+
