@@ -20,7 +20,7 @@ export function handleDeposited(event: DepositedEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
   if (portfolio == null) return
 
-  let user = getOrCreateAccount(event.params.from.toHex())
+  let user = getOrCreateAccount(event.params.by.toHex())
 
   let depositId = event.address.toHex()
     .concat('-')
@@ -32,7 +32,6 @@ export function handleDeposited(event: DepositedEvent): void {
   deposit.portfolio = portfolio.id
   deposit.user = user.id
   deposit.amount = event.params.amount
-  deposit.sharesMinted = event.params.sharesMinted
   deposit.createdAt = event.block.timestamp
   deposit.transactionHash = event.transaction.hash
   deposit.save()

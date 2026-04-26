@@ -147,7 +147,7 @@ indexing path entirely:
 
 | Entity | ID | Notes |
 |---|---|---|
-| `Deposit` | `{portfolio}-{block}-{logIndex}` | Per-deposit history. `amount` (underlying), `sharesMinted`, `user`, `transactionHash`. |
+| `Deposit` | `{portfolio}-{block}-{logIndex}` | Per-deposit history. `amount` (underlying), `user`, `transactionHash`. |
 | `Withdrawal` | `{portfolio}-{block}-{logIndex}` | Per-withdrawal history. `amount`, `to`, `transactionHash`. |
 
 `UserAsset` for these deployments is keyed by `portfolio_address` and `amount` is a running net
@@ -161,7 +161,6 @@ Query example for a portfolio's deposit history:
     deposits(orderBy: createdAt, orderDirection: desc) {
       id
       amount
-      sharesMinted
       user { id }
       createdAt
     }

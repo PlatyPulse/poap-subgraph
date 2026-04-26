@@ -243,7 +243,7 @@ templates:
         - event: RebaseClaimed(indexed uint256,uint256)
           handler: handleRebaseClaimed
 {{#useDepositEvents}}
-        - event: Deposited(indexed address,uint256,uint256)
+        - event: Deposited(indexed address,uint256)
           handler: handleDeposited
         - event: Withdrawn(indexed address,uint256)
           handler: handleWithdrawn

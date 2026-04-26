@@ -1079,19 +1079,13 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "from",
+        "name": "by",
         "type": "address"
       },
       {
         "indexed": false,
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "sharesMinted",
         "type": "uint256"
       }
     ],

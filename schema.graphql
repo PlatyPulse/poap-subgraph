@@ -118,7 +118,6 @@ type Deposit @entity {
   portfolio: Portfolio!
   user: Account!
   amount: BigInt!
-  sharesMinted: BigInt!
   createdAt: BigInt!
   transactionHash: Bytes!
 }
