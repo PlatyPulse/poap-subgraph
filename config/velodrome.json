@@ -1,14 +1,14 @@
 {
   "network": "optimism",
-  "address": "0x0000000000000000000000000000000000000000",
-  "startBlock": 0,
+  "address": "0x40Ac2e40ACb7bdD6EC83E468143262fe216529ec",
+  "startBlock": 44060499,
   "veNFTAddress": "0xFAf8FD17D9840595845582fCB047DF13f006787d",
-  "veNFTStartBlock": 0,
+  "veNFTStartBlock": 44060499,
   "isPharaoh": false,
   "useDepositEvents": false,
   "hasMarketplace": true,
-  "marketplaceAddress": "0x0000000000000000000000000000000000000000",
-  "marketplaceStartBlock": 0,
-  "portfolioSubFactories": "0x0000000000000000000000000000000000000000",
+  "marketplaceAddress": "0xA62C351b3DEDAB4C3e0Cab59B1bc9E5e3097BdF6",
+  "marketplaceStartBlock": 44060499,
+  "portfolioSubFactories": "0xCe904f1C3c9Bdf74d4DBD6a204058D1eb649140B,0x8A71e4BaB42DDC3d996FA4b4780919567e367924",
   "defaultBorrowToken": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
 }
