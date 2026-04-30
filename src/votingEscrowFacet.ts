@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { BigInt, store } from '@graphprotocol/graph-ts'
 import {
   LockIncreased as LockIncreasedEvent,
   LockCreated as LockCreatedEvent,
@@ -121,4 +121,9 @@ export function handleLockMerged(event: LockMergedEvent): void {
     userAsset.amount = userAsset.amount.plus(event.params.weightIncrease)
     userAsset.save()
   }
+
+  // The `from` token is burned by the merge. Aerodrome's veNFT typically emits a Transfer to
+  // 0x0 which veNFTTransfer.ts already cleans up — but defensively remove here too in case
+  // event ordering or future contract changes leave it behind. Idempotent.
+  store.remove('UserAsset', event.params.from.toString())
 }
