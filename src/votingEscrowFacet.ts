@@ -4,8 +4,9 @@ import {
   LockCreated as LockCreatedEvent,
   LockMerged as LockMergedEvent,
 } from '../generated/templates/Portfolio/VotingEscrowFacet'
+import { VotingEscrow } from '../generated/templates/Portfolio/VotingEscrow'
 import { LockCreated, LockIncreased, LockMerge, UserAsset } from '../generated/schema'
-import { getPortfolio, getOrCreateAccount, addToAllTimeAssets } from './utils'
+import { getPortfolio, getOrCreateAccount, addToAllTimeAssets, getVeNFTAddress } from './utils'
 
 export function handleLockIncreased(event: LockIncreasedEvent): void {
   let portfolio = getPortfolio(event.address.toHex())
@@ -36,11 +37,21 @@ export function handleLockIncreased(event: LockIncreasedEvent): void {
     userAsset.owner = owner.id
     userAsset.portfolio = portfolio.id
     userAsset.type = 'veNFT'
+    userAsset.amount = BigInt.fromI32(0)
     userAsset.isManual = false
     userAsset.isCollateral = false
     addToAllTimeAssets(portfolio, userAssetId)
   }
-  userAsset.amount = event.params.amount
+  // event.params.amount is the increment ("ADD TO veNFT" amount), not the new total. Read the
+  // authoritative post-increase balance from the veNFT contract; fall back to additive math if
+  // the call reverts.
+  let veNFTContract = VotingEscrow.bind(getVeNFTAddress())
+  let balanceResult = veNFTContract.try_balanceOfNFTAt(event.params.tokenId, event.block.timestamp)
+  if (!balanceResult.reverted) {
+    userAsset.amount = balanceResult.value
+  } else {
+    userAsset.amount = userAsset.amount.plus(event.params.amount)
+  }
   userAsset.save()
 }
 
